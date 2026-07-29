@@ -1,9 +1,14 @@
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DIRECTOR_SECTIONS, type DirectorSection, type Project } from '../types';
-import { getProject, updateProject } from '../store/projectStore';
+import type { GenerationRecord } from '../types';
+import { getProject, updateProject, addGenerationRecord as storeAddGenerationRecord } from '../store/projectStore';
 import { getExampleProject } from '../data/examples';
+import { DIRECTOR_STYLE_PRESETS } from '../data/directorStyles';
+import type { DirectorStylePreset } from '../types';
 import { copyText as doCopy } from '../utils/clipboard';
+import { useAIHealth } from '../hooks/useAIHealth';
+import { regenerateSection, regenerateShot, optimizeShot, optimizePrompt } from '../api/ai';
 
 const SECTION_MAP: { key: DirectorSection; id: string }[] = [
   { key: 'story', id: 'section-story' },
@@ -28,6 +33,16 @@ export default function Director() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
+
+  // AI 状态
+  const { modelConfigured } = useAIHealth();
+  const [aiLoading, setAiLoading] = useState<string | null>(null); // 当前正在操作的模块
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // 导演风格预设状态
+  const [selectedStyleId, setSelectedStyleId] = useState<string | null>(null);
+  const [showStylePanel, setShowStylePanel] = useState(false);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const mainRef = useRef<HTMLDivElement>(null);
@@ -318,6 +333,281 @@ export default function Director() {
     URL.revokeObjectURL(url);
   }, [data]);
 
+  // ===== AI 辅助函数 =====
+
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  // 应用导演风格预设到所有镜头
+  const applyStylePreset = useCallback((preset: DirectorStylePreset) => {
+    if (!data || !project) return;
+    setSelectedStyleId(preset.id);
+    setShowStylePanel(false);
+
+    const newShots = data.shots.map((shot) => ({
+      ...shot,
+      composition: preset.composition ?? shot.composition,
+      lighting: preset.lighting ?? shot.lighting,
+      cameraAngle: preset.cameraAngle ?? shot.cameraAngle,
+      depthOfField: preset.depthOfField ?? shot.depthOfField,
+      speed: preset.speed ?? shot.speed,
+      mood: preset.mood ?? shot.mood,
+      transition: preset.transition ?? shot.transition,
+      // 追加风格后缀到提示词
+      firstFramePrompt: preset.promptSuffix
+        ? `${shot.firstFramePrompt}。${preset.promptSuffix}`
+        : shot.firstFramePrompt,
+      lastFramePrompt: preset.promptSuffix
+        ? `${shot.lastFramePrompt}。${preset.promptSuffix}`
+        : shot.lastFramePrompt,
+      videoPrompt: preset.videoPromptSuffix
+        ? `${shot.videoPrompt}。${preset.videoPromptSuffix}`
+        : shot.videoPrompt,
+    }));
+
+    setData((prev) => {
+      if (!prev) return prev;
+      return { ...prev, shots: newShots };
+    });
+
+    if (!project.isExample) {
+      updateProject(project.id, { shots: newShots });
+    }
+
+    showToast(`已应用「${preset.name}」，所有镜头参数已更新`);
+  }, [data, project, showToast]);
+
+  const addGenerationRecord = useCallback((type: GenerationRecord['type'], target?: string) => {
+    if (!project) return;
+    const record: GenerationRecord = {
+      id: `gen-${Date.now()}`,
+      type,
+      target,
+      createdAt: new Date().toISOString(),
+    };
+    setProject((prev) => {
+      if (!prev) return prev;
+      const history = prev.generationHistory ? [...prev.generationHistory, record] : [record];
+      return { ...prev, generationHistory: history };
+    });
+    if (!project.isExample) {
+      storeAddGenerationRecord(project.id, record);
+    }
+  }, [project]);
+
+  // 重新生成某个 section（故事/角色/场景/声音设计/参赛说明/发布文案）
+  const handleRegenerateSection = useCallback(async (sectionType: string) => {
+    if (!data || !project || !modelConfigured || aiLoading !== null) return;
+
+    // sectionType 到 data 字段的映射
+    const sectionFieldMap: Record<string, string> = {
+      story: 'story',
+      characters: 'characters',
+      scenes: 'scenes',
+      soundDesign: 'soundDesign',
+      submissionNote: 'submissionNote',
+      socialPosts: 'socialPosts',
+    };
+
+    const fieldName = sectionFieldMap[sectionType];
+    if (!fieldName) return;
+
+    setAiLoading(sectionType);
+    setAiError(null);
+
+    // 保留旧内容以便回滚
+    const oldContent = JSON.parse(JSON.stringify((data as any)[fieldName]));
+
+    try {
+      const result = await regenerateSection({
+        project: data,
+        sectionType,
+      });
+
+      // 更新 data 对应模块
+      setData((prev) => {
+        if (!prev) return prev;
+        const next = JSON.parse(JSON.stringify(prev));
+        (next as any)[fieldName] = result[fieldName] ?? result;
+        // 如果是 story，同步更新 title 和 tagline
+        if (sectionType === 'story' && result.title) {
+          next.title = result.title;
+          next.tagline = result.tagline ?? next.tagline;
+        }
+        return next;
+      });
+
+      // 自动保存
+      if (!project.isExample) {
+        updateProject(project.id, { [fieldName]: result[fieldName] ?? result });
+      }
+
+      addGenerationRecord('regenerate-section', sectionType);
+      showToast(`${sectionType === 'story' ? '故事' : sectionType === 'characters' ? '角色' : sectionType === 'scenes' ? '场景' : sectionType === 'soundDesign' ? '声音设计' : sectionType === 'submissionNote' ? '参赛说明' : '发布文案'} 重新生成成功`);
+    } catch (err: any) {
+      // 恢复旧内容
+      setData((prev) => {
+        if (!prev) return prev;
+        const next = JSON.parse(JSON.stringify(prev));
+        (next as any)[fieldName] = oldContent;
+        return next;
+      });
+      setAiError(err?.message || '重新生成失败，原内容已保留');
+      showToast('重新生成失败，原内容已保留');
+    } finally {
+      setAiLoading(null);
+    }
+  }, [data, project, modelConfigured, aiLoading, addGenerationRecord, showToast]);
+
+  // 重新生成某个镜头
+  const handleRegenerateShot = useCallback(async (shotIndex: number) => {
+    if (!data || !project || !modelConfigured || aiLoading !== null) return;
+
+    setAiLoading(`shot-${shotIndex}`);
+    setAiError(null);
+
+    // 保留旧 shot
+    const oldShot = JSON.parse(JSON.stringify(data.shots[shotIndex]));
+
+    try {
+      const result = await regenerateShot({
+        project: data,
+        shotIndex,
+      });
+
+      setData((prev) => {
+        if (!prev) return prev;
+        const next = JSON.parse(JSON.stringify(prev));
+        next.shots[shotIndex] = result;
+        return next;
+      });
+
+      if (!project.isExample) {
+        const newShots = data.shots.map((s, idx) => idx === shotIndex ? result : s);
+        updateProject(project.id, { shots: newShots });
+      }
+
+      addGenerationRecord('regenerate-shot', `镜头 ${shotIndex + 1}`);
+      showToast(`镜头 ${shotIndex + 1} 重新生成成功`);
+    } catch (err: any) {
+      // 恢复旧 shot
+      setData((prev) => {
+        if (!prev) return prev;
+        const next = JSON.parse(JSON.stringify(prev));
+        next.shots[shotIndex] = oldShot;
+        return next;
+      });
+      setAiError(err?.message || '重新生成失败，原内容已保留');
+      showToast('重新生成失败，原内容已保留');
+    } finally {
+      setAiLoading(null);
+    }
+  }, [data, project, modelConfigured, aiLoading, addGenerationRecord, showToast]);
+
+  // 优化某个镜头
+  const handleOptimizeShot = useCallback(async (shotIndex: number) => {
+    if (!data || !project || !modelConfigured || aiLoading !== null) return;
+
+    setAiLoading(`optimize-shot-${shotIndex}`);
+    setAiError(null);
+
+    const oldShot = JSON.parse(JSON.stringify(data.shots[shotIndex]));
+
+    try {
+      const result = await optimizeShot({
+        project: data,
+        shotIndex,
+        optimizeType: '综合优化',
+      });
+
+      setData((prev) => {
+        if (!prev) return prev;
+        const next = JSON.parse(JSON.stringify(prev));
+        next.shots[shotIndex] = result;
+        return next;
+      });
+
+      if (!project.isExample) {
+        const newShots = data.shots.map((s, idx) => idx === shotIndex ? result : s);
+        updateProject(project.id, { shots: newShots });
+      }
+
+      addGenerationRecord('optimize-shot', `镜头 ${shotIndex + 1}`);
+      showToast(`镜头 ${shotIndex + 1} 优化成功`);
+    } catch (err: any) {
+      setData((prev) => {
+        if (!prev) return prev;
+        const next = JSON.parse(JSON.stringify(prev));
+        next.shots[shotIndex] = oldShot;
+        return next;
+      });
+      setAiError(err?.message || '优化失败，原内容已保留');
+      showToast('优化失败，原内容已保留');
+    } finally {
+      setAiLoading(null);
+    }
+  }, [data, project, modelConfigured, aiLoading, addGenerationRecord, showToast]);
+
+  // 优化某个提示词字段
+  const handleOptimizePrompt = useCallback(async (shotIndex: number, promptField: 'firstFramePrompt' | 'lastFramePrompt' | 'videoPrompt') => {
+    if (!data || !project || !modelConfigured || aiLoading !== null) return;
+
+    setAiLoading(`optimize-prompt-${shotIndex}-${promptField}`);
+    setAiError(null);
+
+    const oldValue = data.shots[shotIndex][promptField];
+
+    try {
+      const result = await optimizePrompt({
+        project: data,
+        shotIndex,
+        promptField,
+        optimizeType: '综合优化',
+      });
+
+      setData((prev) => {
+        if (!prev) return prev;
+        const next = JSON.parse(JSON.stringify(prev));
+        next.shots[shotIndex][promptField] = result;
+        return next;
+      });
+
+      if (!project.isExample) {
+        const newShots = data.shots.map((s, idx) => {
+          if (idx !== shotIndex) return s;
+          return { ...s, [promptField]: result };
+        });
+        updateProject(project.id, { shots: newShots });
+      }
+
+      const fieldLabel = promptField === 'firstFramePrompt' ? '首帧' : promptField === 'lastFramePrompt' ? '尾帧' : '视频';
+      addGenerationRecord('optimize-prompt', `镜头 ${shotIndex + 1} ${fieldLabel}提示词`);
+      showToast(`镜头 ${shotIndex + 1} ${fieldLabel}提示词优化成功`);
+    } catch (err: any) {
+      // 恢复旧值
+      setData((prev) => {
+        if (!prev) return prev;
+        const next = JSON.parse(JSON.stringify(prev));
+        next.shots[shotIndex][promptField] = oldValue;
+        return next;
+      });
+      setAiError(err?.message || '提示词优化失败，原内容已保留');
+      showToast('提示词优化失败，原内容已保留');
+    } finally {
+      setAiLoading(null);
+    }
+  }, [data, project, modelConfigured, aiLoading, addGenerationRecord, showToast]);
+
+  // AI 按钮统一禁用判断
+  const aiDisabled = !modelConfigured || aiLoading !== null;
+  const aiTooltip = !modelConfigured
+    ? '需要配置火山方舟 API'
+    : aiLoading !== null
+      ? 'AI 正在处理中...'
+      : '点击执行';
+
   if (!project || !data) {
     return (
       <div className="page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
@@ -450,7 +740,7 @@ export default function Director() {
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button className="btn btn-sm btn-ghost">继续优化</button>
+              <button className="btn btn-sm btn-ghost" onClick={() => navigate('/create')}>继续创作</button>
               <button className="btn btn-sm btn-secondary" onClick={exportMarkdown}>导出 Markdown</button>
               <button className="btn btn-sm btn-teal" onClick={copyAllPrompts}>复制全部提示词</button>
             </div>
@@ -475,6 +765,7 @@ export default function Director() {
                 {editingField === 'story-synopsis' ? (
                   <div>
                     <textarea
+                      autoFocus
                       value={editDraft}
                       onChange={(e) => setEditDraft(e.target.value)}
                       style={{ width: '100%', minHeight: 120, padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 15, lineHeight: 1.8, marginBottom: 8 }}
@@ -491,8 +782,15 @@ export default function Director() {
               <div className="divider" />
               <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
                 <button className="btn btn-sm btn-ghost" onClick={() => startEdit('story-synopsis', data.story.synopsis)}>编辑</button>
-                <button className="btn btn-sm btn-ghost">保存</button>
-                <button className="btn btn-sm btn-secondary">AI 重新生成</button>
+                <button
+                  className="btn btn-sm btn-secondary"
+                  disabled={aiDisabled}
+                  title={aiTooltip}
+                  onClick={() => handleRegenerateSection('story')}
+                  style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                >
+                  {aiLoading === 'story' ? '生成中...' : 'AI 重新生成'}
+                </button>
               </div>
             </div>
           </section>
@@ -527,6 +825,7 @@ export default function Director() {
                           {editingField === fieldId ? (
                             <div>
                               <textarea
+                                autoFocus
                                 value={editDraft}
                                 onChange={(e) => setEditDraft(e.target.value)}
                                 style={{ width: '100%', minHeight: 60, padding: 8, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, lineHeight: 1.5, marginBottom: 6 }}
@@ -546,7 +845,15 @@ export default function Director() {
                   <div className="divider" />
                   <div style={{ display: 'flex', gap: 12 }}>
                     <button className="btn btn-sm btn-ghost" onClick={() => startEdit(`char-${i}-name`, char.name)}>编辑角色</button>
-                    <button className="btn btn-sm btn-secondary">重新生成角色</button>
+                    <button
+                      className="btn btn-sm btn-secondary"
+                      disabled={aiDisabled}
+                      title={aiTooltip}
+                      onClick={() => handleRegenerateSection('characters')}
+                      style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                    >
+                      {aiLoading === 'characters' ? '生成中...' : '重新生成角色'}
+                    </button>
                   </div>
                 </div>
               ))}
@@ -605,7 +912,15 @@ export default function Director() {
                   <div className="divider" />
                   <div style={{ display: 'flex', gap: 12 }}>
                     <button className="btn btn-sm btn-ghost" onClick={() => startEdit(`scene-${i}-name`, scene.name)}>编辑</button>
-                    <button className="btn btn-sm btn-secondary">重新生成场景</button>
+                    <button
+                      className="btn btn-sm btn-secondary"
+                      disabled={aiDisabled}
+                      title={aiTooltip}
+                      onClick={() => handleRegenerateSection('scenes')}
+                      style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                    >
+                      {aiLoading === 'scenes' ? '生成中...' : '重新生成场景'}
+                    </button>
                   </div>
                 </div>
               ))}
@@ -614,9 +929,68 @@ export default function Director() {
 
           {/* ===== 04 分镜导演台 ===== */}
           <section id="section-shots" className="director-section" style={{ marginBottom: 48 }}>
-            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>
-              <span style={{ color: 'var(--gold)', marginRight: 8 }}>04</span>分镜导演台
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+              <h2 style={{ fontSize: 22, fontWeight: 700 }}>
+                <span style={{ color: 'var(--gold)', marginRight: 8 }}>04</span>分镜导演台
+              </h2>
+              {/* 导演风格预设选择器 */}
+              <button
+                className="btn btn-sm btn-secondary"
+                onClick={() => setShowStylePanel(!showStylePanel)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                {selectedStyleId
+                  ? `${DIRECTOR_STYLE_PRESETS.find((s) => s.id === selectedStyleId)?.icon ?? ''} ${DIRECTOR_STYLE_PRESETS.find((s) => s.id === selectedStyleId)?.name ?? '风格'}`
+                  : '🎬 导演风格预设'}
+              </button>
+            </div>
+
+            {/* 风格预设面板 */}
+            {showStylePanel && (
+              <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <h4 style={{ fontSize: 15, fontWeight: 600 }}>选择导演风格预设</h4>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>一键应用到所有镜头</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+                  {DIRECTOR_STYLE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => applyStylePreset(preset)}
+                      style={{
+                        padding: 14,
+                        borderRadius: 'var(--radius-md)',
+                        border: selectedStyleId === preset.id
+                          ? '2px solid var(--gold)'
+                          : '1px solid var(--border)',
+                        background: selectedStyleId === preset.id ? 'var(--gold-dim)' : 'var(--bg-input)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 6,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 20 }}>{preset.icon}</span>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{preset.name}</span>
+                      </div>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4 }}>{preset.description}</span>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                        {preset.composition && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 8, background: 'rgba(139,92,246,0.12)', color: '#a78bfa' }}>{preset.composition}</span>}
+                        {preset.lighting && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 8, background: 'rgba(251,191,36,0.12)', color: '#fbbf24' }}>{preset.lighting}</span>}
+                        {preset.mood && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 8, background: 'rgba(244,114,182,0.12)', color: '#f472b6' }}>{preset.mood}</span>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 12, lineHeight: 1.5 }}>
+                  风格预设基于电影流派和美学特征，不使用导演姓名，避免版权风险。应用后所有镜头的7个维度参数将自动填充，提示词将追加风格描述后缀。
+                </p>
+              </div>
+            )}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {data.shots.map((shot, i) => {
                 const isExpanded = expandedShots.has(shot.id);
@@ -666,13 +1040,53 @@ export default function Director() {
                       </div>
                     </div>
 
+                    {/* 分镜规格标签 (V2.1.0 新增) */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 10px', marginBottom: 12 }}>
+                      {shot.composition && (
+                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(139,92,246,0.12)', color: '#a78bfa', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 10 }}>🎨</span>构图 · {shot.composition}
+                        </span>
+                      )}
+                      {shot.lighting && (
+                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(251,191,36,0.12)', color: '#fbbf24', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 10 }}>💡</span>光效 · {shot.lighting}
+                        </span>
+                      )}
+                      {shot.cameraAngle && (
+                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(56,189,248,0.12)', color: '#38bdf8', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 10 }}>📐</span>角度 · {shot.cameraAngle}
+                        </span>
+                      )}
+                      {shot.depthOfField && (
+                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(168,85,247,0.12)', color: '#c084fc', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 10 }}>🔍</span>景深 · {shot.depthOfField}
+                        </span>
+                      )}
+                      {shot.speed && (
+                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(52,211,153,0.12)', color: '#34d399', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 10 }}>⚡</span>速度 · {shot.speed}
+                        </span>
+                      )}
+                      {shot.mood && (
+                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(244,114,182,0.12)', color: '#f472b6', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 10 }}>🎭</span>情绪 · {shot.mood}
+                        </span>
+                      )}
+                      {shot.transition && (
+                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(148,163,184,0.12)', color: '#94a3b8', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 10 }}>🔀</span>转场 · {shot.transition}
+                        </span>
+                      )}
+                    </div>
+
                     {/* 画面描述 */}
                     {editingField === `shot-${shot.id}-description` ? (
                       <div style={{ marginBottom: 12 }}>
                         <textarea
-                          value={editDraft}
-                          onChange={(e) => setEditDraft(e.target.value)}
-                          style={{ width: '100%', minHeight: 100, padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 15, lineHeight: 1.7, marginBottom: 8 }}
+                        autoFocus
+                        value={editDraft}
+                        onChange={(e) => setEditDraft(e.target.value)}
+                        style={{ width: '100%', minHeight: 100, padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 15, lineHeight: 1.7, marginBottom: 8 }}
                         />
                         <div style={{ display: 'flex', gap: 8 }}>
                           <button className="btn btn-sm btn-primary" onClick={() => saveEdit(`shot-${shot.id}-description`, ['shots', String(i), 'description'])}>保存</button>
@@ -716,8 +1130,24 @@ export default function Director() {
                     {/* 操作按钮 */}
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       <button className="btn btn-sm btn-ghost" onClick={() => startEdit(`shot-${shot.id}-description`, shot.description)}>编辑</button>
-                      <button className="btn btn-sm btn-ghost">重新生成</button>
-                      <button className="btn btn-sm btn-teal">AI 优化</button>
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        disabled={aiDisabled}
+                        title={aiTooltip}
+                        onClick={() => handleRegenerateShot(i)}
+                        style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                      >
+                        {aiLoading === `shot-${i}` ? '生成中...' : '重新生成'}
+                      </button>
+                      <button
+                        className="btn btn-sm btn-teal"
+                        disabled={aiDisabled}
+                        title={aiTooltip}
+                        onClick={() => handleOptimizeShot(i)}
+                        style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                      >
+                        {aiLoading === `optimize-shot-${i}` ? '优化中...' : 'AI 优化'}
+                      </button>
                       <button
                         className="btn btn-sm btn-secondary"
                         onClick={() => togglePrompt(shot.id)}
@@ -740,17 +1170,27 @@ export default function Director() {
                               >
                                 复制{copiedId === `${shot.id}-first` && <span className="copy-feedback">已复制</span>}
                               </button>
+                              <button
+                                className="btn btn-sm btn-teal"
+                                disabled={aiDisabled}
+                                title={aiTooltip}
+                                onClick={() => handleOptimizePrompt(i, 'firstFramePrompt')}
+                                style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                              >
+                                {aiLoading === `optimize-prompt-${i}-firstFramePrompt` ? '优化中...' : 'AI 优化'}
+                              </button>
                             </div>
                           </div>
                           {editingField === `shot-${shot.id}-first` ? (
                             <div>
                               <textarea
+                                autoFocus
                                 value={editDraft}
                                 onChange={(e) => setEditDraft(e.target.value)}
                                 style={{ width: '100%', minHeight: 100, padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, lineHeight: 1.6, marginBottom: 8 }}
                               />
-                              <div style={{ display: 'flex', gap: 8 }}>
-                                <button className="btn btn-sm btn-primary" onClick={() => saveEdit(`shot-${shot.id}-first`, ['shots', String(i), 'firstFramePrompt'])}>保存</button>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <button className="btn btn-sm btn-primary" onClick={() => saveEdit(`shot-${shot.id}-first`, ['shots', String(i), 'firstFramePrompt'])}>保存</button>
                                 <button className="btn btn-sm btn-ghost" onClick={cancelEdit}>取消</button>
                               </div>
                             </div>
@@ -769,11 +1209,21 @@ export default function Director() {
                               >
                                 复制{copiedId === `${shot.id}-last` && <span className="copy-feedback">已复制</span>}
                               </button>
+                              <button
+                                className="btn btn-sm btn-teal"
+                                disabled={aiDisabled}
+                                title={aiTooltip}
+                                onClick={() => handleOptimizePrompt(i, 'lastFramePrompt')}
+                                style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                              >
+                                {aiLoading === `optimize-prompt-${i}-lastFramePrompt` ? '优化中...' : 'AI 优化'}
+                              </button>
                             </div>
                           </div>
                           {editingField === `shot-${shot.id}-last` ? (
                             <div>
                               <textarea
+                                autoFocus
                                 value={editDraft}
                                 onChange={(e) => setEditDraft(e.target.value)}
                                 style={{ width: '100%', minHeight: 100, padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, lineHeight: 1.6, marginBottom: 8 }}
@@ -798,11 +1248,21 @@ export default function Director() {
                               >
                                 复制{copiedId === `${shot.id}-video` && <span className="copy-feedback">已复制</span>}
                               </button>
+                              <button
+                                className="btn btn-sm btn-teal"
+                                disabled={aiDisabled}
+                                title={aiTooltip}
+                                onClick={() => handleOptimizePrompt(i, 'videoPrompt')}
+                                style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                              >
+                                {aiLoading === `optimize-prompt-${i}-videoPrompt` ? '优化中...' : 'AI 优化'}
+                              </button>
                             </div>
                           </div>
                           {editingField === `shot-${shot.id}-video` ? (
                             <div>
                               <textarea
+                                autoFocus
                                 value={editDraft}
                                 onChange={(e) => setEditDraft(e.target.value)}
                                 style={{ width: '100%', minHeight: 100, padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, lineHeight: 1.6, marginBottom: 8 }}
@@ -841,7 +1301,15 @@ export default function Director() {
                 <div key={label} style={{ marginBottom: 20 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <label style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)' }}>{label}</label>
-                    <button className="btn btn-sm btn-ghost">AI 优化</button>
+                    <button
+                      className="btn btn-sm btn-ghost"
+                      disabled={aiDisabled}
+                      title={aiTooltip}
+                      onClick={() => handleRegenerateSection('soundDesign')}
+                      style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                    >
+                      {aiLoading === 'soundDesign' ? '优化中...' : 'AI 优化'}
+                    </button>
                   </div>
                   <p
                     style={{
@@ -962,6 +1430,7 @@ export default function Director() {
                     {editingField === fieldId ? (
                       <div>
                         <textarea
+                          autoFocus
                           value={editDraft}
                           onChange={(e) => setEditDraft(e.target.value)}
                           style={{ width: '100%', minHeight: 80, padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, lineHeight: 1.6, marginBottom: 8 }}
@@ -989,7 +1458,15 @@ export default function Director() {
                 );
               })}
               <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                <button className="btn btn-sm btn-secondary">AI 重新生成</button>
+                <button
+                  className="btn btn-sm btn-secondary"
+                  disabled={aiDisabled}
+                  title={aiTooltip}
+                  onClick={() => handleRegenerateSection('submissionNote')}
+                  style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                >
+                  {aiLoading === 'submissionNote' ? '生成中...' : 'AI 重新生成'}
+                </button>
               </div>
             </div>
           </section>
@@ -1012,12 +1489,21 @@ export default function Director() {
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button className="btn btn-sm btn-ghost" onClick={() => handleCopy(value, `social-${fieldKey}`)}>复制</button>
                         <button className="btn btn-sm btn-ghost" onClick={() => startEdit(fieldId, value)}>编辑</button>
-                        <button className="btn btn-sm btn-teal">AI 优化</button>
+                        <button
+                          className="btn btn-sm btn-teal"
+                          disabled={aiDisabled}
+                          title={aiTooltip}
+                          onClick={() => handleRegenerateSection('socialPosts')}
+                          style={aiDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                        >
+                          {aiLoading === 'socialPosts' ? '优化中...' : 'AI 优化'}
+                        </button>
                       </div>
                     </div>
                     {editingField === fieldId ? (
                       <div>
                         <textarea
+                          autoFocus
                           value={editDraft}
                           onChange={(e) => setEditDraft(e.target.value)}
                           style={{ width: '100%', minHeight: 120, padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, lineHeight: 1.8, marginBottom: 8, whiteSpace: 'pre-wrap' }}
@@ -1049,6 +1535,27 @@ export default function Director() {
           </section>
         </main>
       </div>
+      {/* Toast 通知 */}
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            padding: '12px 20px',
+            borderRadius: 'var(--radius-md)',
+            background: aiError ? 'rgba(248,113,113,0.95)' : 'rgba(52,211,153,0.95)',
+            color: '#fff',
+            fontSize: 14,
+            fontWeight: 500,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            zIndex: 10000,
+            animation: 'fadeIn 0.3s ease',
+          }}
+        >
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
