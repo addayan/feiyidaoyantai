@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
+interface CompletionStat {
+  icon: string;
+  label: string;
+}
+
 interface Props {
   visible: boolean;
   heritageType: string;
@@ -13,6 +18,7 @@ interface Props {
   error: boolean;
   onRetry: () => void;
   onDismiss: () => void;
+  completionStats?: CompletionStat[];
 }
 
 const STAGES = [
@@ -36,11 +42,11 @@ function getContextLine(stage: number, ht: string, topic: string): string {
   }
 }
 
-const COMPLETION_STATS = [
-  { icon: '👤', label: '2 个角色' },
-  { icon: '🎬', label: '3 个场景' },
-  { icon: '📷', label: '8 个镜头' },
-  { icon: '✨', label: '24 条 AI 提示词' },
+const DEFAULT_STATS: CompletionStat[] = [
+  { icon: '👤', label: '-- 个角色' },
+  { icon: '🎬', label: '-- 个场景' },
+  { icon: '📷', label: '-- 个镜头' },
+  { icon: '✨', label: '-- 条 AI 提示词' },
   { icon: '✅', label: '1 份文化表达检查' },
 ];
 
@@ -89,10 +95,13 @@ function OverlayParticles() {
 /* ============================================================
    GenerationOverlay 主组件
    ============================================================ */
+export type { CompletionStat };
+
 export default function GenerationOverlay({
   visible, heritageType, topic, purpose, duration, style: vs,
-  progress, currentStage, done, error, onRetry, onDismiss,
+  progress, currentStage, done, error, onRetry, onDismiss, completionStats,
 }: Props) {
+  const stats = completionStats ?? DEFAULT_STATS;
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -163,7 +172,7 @@ export default function GenerationOverlay({
             <div style={{
               display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 28,
             }}>
-              {COMPLETION_STATS.map((s, i) => (
+              {stats.map((s, i) => (
                 <div key={i} style={{
                   padding: '8px 16px', borderRadius: 'var(--radius-md)',
                   background: 'var(--bg-card)', border: '1px solid var(--border)',

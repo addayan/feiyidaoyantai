@@ -43,10 +43,11 @@ export default function Navbar() {
           <span style={{
             fontSize: 20,
             fontWeight: 800,
-            background: 'linear-gradient(135deg, var(--gold), var(--teal))',
+            background: 'linear-gradient(135deg, #ffffff 20%, var(--gold) 80%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
+            filter: 'drop-shadow(0 1px 8px rgba(212,168,83,0.12))',
           }}>
             非遗影像工坊
           </span>
