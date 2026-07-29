@@ -1,9 +1,12 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { HeritageType, Purpose, Duration, VisualStyle, Project } from '../types';
+import type { GenerationMeta } from '../types';
 import { generateMockProjectData } from '../data/mockGenerator';
 import { createProject } from '../store/projectStore';
-import GenerationOverlay from '../components/GenerationOverlay';
+import { useAIHealth } from '../hooks/useAIHealth';
+import { generateStoryboard, type AIError } from '../api/ai';
+import GenerationOverlay, { type CompletionStat } from '../components/GenerationOverlay';
 
 const HERITAGE_OPTIONS: HeritageType[] = ['傩戏', '铜梁龙', '蜀绣', '木版年画', '剪纸', '皮影', '陶艺', '其他'];
 const PURPOSE_OPTIONS: Purpose[] = ['AIGC 比赛', '短视频', '课程作业', '文旅宣传', '动态海报', '其他'];
@@ -51,11 +54,12 @@ function chipStyle(selected: boolean): React.CSSProperties {
    Segmented Control
    ============================================================ */
 function SegmentedControl({
-  value, onChange, disabled,
+  value, onChange, disabled, aiDisabled,
 }: {
   value: 'ai' | 'quick';
   onChange: (v: 'ai' | 'quick') => void;
   disabled?: boolean;
+  aiDisabled?: boolean;
 }) {
   return (
     <div style={{
@@ -64,20 +68,24 @@ function SegmentedControl({
       overflow: 'hidden',
     }}>
       <button
-        disabled={disabled}
+        disabled={disabled || aiDisabled}
         onClick={() => onChange('ai')}
+        title={aiDisabled ? '需要配置火山方舟 API Key 与模型 ID' : undefined}
         style={{
-          flex: 1, padding: '10px 0', fontSize: 14, fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer',
+          flex: 1, padding: '10px 0', fontSize: 14, fontWeight: 600, cursor: (disabled || aiDisabled) ? 'not-allowed' : 'pointer',
           background: value === 'ai' ? 'rgba(212,168,83,0.15)' : 'transparent',
-          color: value === 'ai' ? 'var(--gold)' : 'var(--text-muted)',
+          color: value === 'ai' ? 'var(--gold)' : (aiDisabled ? 'var(--text-muted)' : 'var(--text-muted)'),
           border: 'none', borderBottom: value === 'ai' ? '2px solid var(--gold)' : '2px solid transparent',
-          transition: 'all 0.2s', opacity: disabled ? 0.5 : 1,
+          transition: 'all 0.2s', opacity: (disabled || aiDisabled) ? 0.5 : 1,
+          position: 'relative',
         }}
       >
         AI 真实生成
         <span style={{
           display: 'block', fontSize: 11, fontWeight: 400, color: 'var(--text-muted)', marginTop: 2,
-        }}>即将接入</span>
+        }}>
+          {aiDisabled ? '未配置 API' : '接入火山方舟'}
+        </span>
       </button>
       <button
         disabled={disabled}
@@ -105,6 +113,9 @@ function SegmentedControl({
 export default function Create() {
   const navigate = useNavigate();
 
+  // AI 健康检查
+  const { modelConfigured, loading: healthLoading } = useAIHealth();
+
   // 表单状态
   const [heritageType, setHeritageType] = useState<HeritageType>('蜀绣');
   const [topic, setTopic] = useState('');
@@ -120,7 +131,11 @@ export default function Create() {
   const [currentStage, setCurrentStage] = useState(0);
   const [done, setDone] = useState(false);
   const [error, setError] = useState(false);
-  const [aiNotice, setAiNotice] = useState(false);
+  const [aiError, setAiError] = useState<AIError | null>(null);
+  const [completionStats, setCompletionStats] = useState<CompletionStat[] | undefined>(undefined);
+
+  // AI 请求控制
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   // 防重复提交
   const generatingRef = useRef(false);
@@ -138,16 +153,78 @@ export default function Create() {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    // 取消进行中的 AI 请求
+    setAbortController(prev => {
+      if (prev) prev.abort();
+      return null;
+    });
     generatingRef.current = false;
   }, []);
 
-  const runGeneration = useCallback(() => {
+  // 组件卸载时清理
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setAbortController(prev => {
+        if (prev) prev.abort();
+        return null;
+      });
+    };
+  }, []);
+
+  // 计算完成统计的通用函数
+  const computeCompletionStats = useCallback((data: any) => {
+    const promptCount = data.shots.reduce((count: number, shot: any) => {
+      return (
+        count +
+        Number(Boolean(shot.firstFramePrompt)) +
+        Number(Boolean(shot.lastFramePrompt)) +
+        Number(Boolean(shot.videoPrompt))
+      );
+    }, 0);
+    const charIcon = String.fromCodePoint(0x1F464);
+    const sceneIcon = String.fromCodePoint(0x1F3AC);
+    const shotIcon = String.fromCodePoint(0x1F4F7);
+    const sparkleIcon = String.fromCodePoint(0x2728);
+    const checkIcon = String.fromCodePoint(0x2705);
+    return [
+      { icon: charIcon, label: `${data.characters.length} 个角色` },
+      { icon: sceneIcon, label: `${data.scenes.length} 个场景` },
+      { icon: shotIcon, label: `${data.shots.length} 个镜头` },
+      { icon: sparkleIcon, label: `${promptCount} 条 AI 提示词` },
+      { icon: checkIcon, label: '1 份文化表达检查' },
+    ];
+  }, []);
+
+  // 创建项目并跳转的通用函数
+  const finalizeProject = useCallback((data: any, generationMeta: GenerationMeta) => {
+    const now = new Date().toISOString();
+    const projectId = `proj-${Date.now()}`;
+    const project: Project = {
+      id: projectId,
+      slug: projectId,
+      createdAt: now,
+      updatedAt: now,
+      data,
+      isExample: false,
+      generationMeta,
+    };
+    createProject(project);
+    setTimeout(() => {
+      setShowOverlay(false);
+      navigate(`/director/${projectId}`);
+    }, 1200);
+  }, [navigate]);
+
+  // ===== 快速体验模式（原有 mock 逻辑） =====
+  const runMockGeneration = useCallback(() => {
     setShowOverlay(true);
     setGenerating(true);
     setProgress(0);
     setCurrentStage(0);
     setDone(false);
     setError(false);
+    setAiError(null);
     generatingRef.current = true;
 
     let stage = 0;
@@ -180,7 +257,6 @@ export default function Create() {
           setDone(true);
           setGenerating(false);
 
-          // 生成数据
           try {
             const data = generateMockProjectData({
               heritageType,
@@ -190,24 +266,8 @@ export default function Create() {
               style,
             });
 
-            const now = new Date().toISOString();
-            const projectId = `proj-${Date.now()}`;
-            const project: Project = {
-              id: projectId,
-              slug: projectId,
-              createdAt: now,
-              updatedAt: now,
-              data,
-              isExample: false,
-            };
-
-            createProject(project);
-
-            // 延迟后跳转
-            setTimeout(() => {
-              setShowOverlay(false);
-              navigate(`/director/${projectId}`);
-            }, 1200);
+            setCompletionStats(computeCompletionStats(data));
+            finalizeProject(data, { mode: 'quick' });
           } catch {
             setError(true);
             setGenerating(false);
@@ -215,25 +275,120 @@ export default function Create() {
         }, 1000);
       }
     }, 400);
-  }, [heritageType, topic, purpose, duration, style, navigate]);
+  }, [heritageType, topic, purpose, duration, style, computeCompletionStats, finalizeProject]);
+
+  // ===== AI 真实生成模式 =====
+  const runAIGeneration = useCallback(() => {
+    setShowOverlay(true);
+    setGenerating(true);
+    setProgress(0);
+    setCurrentStage(0);
+    setDone(false);
+    setError(false);
+    setAiError(null);
+    generatingRef.current = true;
+
+    // 创建 AbortController
+    const controller = new AbortController();
+    setAbortController(controller);
+
+    // 模拟进度动画（AI 调用期间）
+    let stage = 0;
+    let pct = 0;
+    timerRef.current = setInterval(() => {
+      if (!generatingRef.current) {
+        if (timerRef.current) clearInterval(timerRef.current);
+        return;
+      }
+      // AI 模式下进度较慢
+      pct += 0.5 + Math.random() * 1.5;
+      if (pct > 85) pct = 85; // 最高到 85%，等 AI 返回后跳到 100%
+      setProgress(pct);
+
+      const newStage = Math.min(Math.floor(pct / (100 / STAGE_COUNT)), STAGE_COUNT - 1);
+      if (newStage !== stage) {
+        stage = newStage;
+        setCurrentStage(stage);
+      }
+    }, 600);
+
+    // 调用 AI API
+    generateStoryboard({
+      heritageType,
+      topic: topic.trim(),
+      purpose,
+      duration,
+      style,
+    }, controller.signal)
+      .then((data) => {
+        // AI 返回成功
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = null;
+        generatingRef.current = false;
+
+        setProgress(100);
+        setCurrentStage(STAGE_COUNT - 1);
+
+        setTimeout(() => {
+          setDone(true);
+          setGenerating(false);
+          setCompletionStats(computeCompletionStats(data));
+          finalizeProject(data, { mode: 'ai' });
+        }, 800);
+      })
+      .catch((err: AIError) => {
+        // AI 返回失败
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = null;
+        generatingRef.current = false;
+
+        setGenerating(false);
+        setDone(true);
+        setError(true);
+        setAiError(err);
+      });
+  }, [heritageType, topic, purpose, duration, style, computeCompletionStats, finalizeProject]);
 
   const handleGenerate = useCallback(() => {
     if (!canGenerate || generatingRef.current) return;
 
     if (mode === 'ai') {
-      setAiNotice(true);
+      if (!modelConfigured) return;
+      runAIGeneration();
       return;
     }
 
-    setAiNotice(false);
-    runGeneration();
-  }, [canGenerate, mode, runGeneration]);
+    runMockGeneration();
+  }, [canGenerate, mode, modelConfigured, runAIGeneration, runMockGeneration]);
 
   const handleRetry = useCallback(() => {
     cleanup();
     setError(false);
-    runGeneration();
-  }, [cleanup, runGeneration]);
+    setAiError(null);
+
+    if (mode === 'ai') {
+      runAIGeneration();
+    } else {
+      runMockGeneration();
+    }
+  }, [cleanup, mode, runAIGeneration, runMockGeneration]);
+
+  const handleFallbackToQuick = useCallback(() => {
+    cleanup();
+    setShowOverlay(false);
+    setGenerating(false);
+    setDone(false);
+    setError(false);
+    setAiError(null);
+    setProgress(0);
+    setCurrentStage(0);
+    setCompletionStats(undefined);
+    // 切换到快速体验模式并重新生成
+    setMode('quick');
+    setTimeout(() => {
+      runMockGeneration();
+    }, 300);
+  }, [cleanup, runMockGeneration]);
 
   const handleDismiss = useCallback(() => {
     cleanup();
@@ -241,12 +396,11 @@ export default function Create() {
     setGenerating(false);
     setDone(false);
     setError(false);
+    setAiError(null);
     setProgress(0);
     setCurrentStage(0);
+    setCompletionStats(undefined);
   }, [cleanup]);
-
-  // 组件卸载时清理
-  useState(() => () => cleanup());
 
   return (
     <div className="page">
@@ -263,7 +417,67 @@ export default function Create() {
         error={error}
         onRetry={handleRetry}
         onDismiss={handleDismiss}
+        completionStats={completionStats}
       />
+
+      {/* AI 错误信息 - 覆盖在 overlay 之上 */}
+      {showOverlay && done && error && aiError && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+        }}>
+          <div style={{
+            background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)',
+            padding: '32px', maxWidth: 440, width: '90%', textAlign: 'center',
+            border: '1px solid var(--border)',
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: '50%', margin: '0 auto 16px',
+              background: 'rgba(248, 113, 113, 0.1)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ fontSize: 24 }}>&#9888;</span>
+            </div>
+            <h3 style={{
+              fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8,
+            }}>
+              AI 生成失败
+            </h3>
+            <p style={{
+              fontSize: 14, color: 'var(--text-secondary)', marginBottom: 4,
+            }}>
+              {aiError.message}
+            </p>
+            <p style={{
+              fontSize: 12, color: 'var(--text-muted)', marginBottom: 24,
+            }}>
+              错误代码: {aiError.code}
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              {aiError.retryable && (
+                <button
+                  className="btn btn-primary"
+                  style={{ padding: '10px 24px', fontSize: 14, fontWeight: 600 }}
+                  onClick={handleRetry}
+                >
+                  重新尝试
+                </button>
+              )}
+              <button
+                className="btn btn-ghost"
+                style={{
+                  padding: '10px 24px', fontSize: 14, fontWeight: 600,
+                  border: '1px solid var(--border)',
+                }}
+                onClick={handleFallbackToQuick}
+              >
+                使用快速体验
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="page-container" style={{ maxWidth: 680 }}>
         <h1 className="page-title">开始创作</h1>
@@ -406,25 +620,24 @@ export default function Create() {
             <label style={LABEL_STYLE}>生成模式</label>
             <SegmentedControl
               value={mode}
-              onChange={v => { setMode(v); setAiNotice(false); }}
+              onChange={v => { setMode(v); }}
               disabled={generatingRef.current}
+              aiDisabled={!healthLoading && !modelConfigured}
             />
+            {!healthLoading && !modelConfigured && mode === 'ai' && (
+              <div style={{
+                marginTop: 8,
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'rgba(248, 113, 113, 0.08)',
+                border: '1px solid rgba(248, 113, 113, 0.2)',
+                color: 'var(--text-secondary)',
+                fontSize: 12,
+              }}>
+                需要配置火山方舟 API Key 与模型 ID 才能使用 AI 真实生成
+              </div>
+            )}
           </div>
-
-          {/* AI 不可用提示 */}
-          {aiNotice && (
-            <div style={{
-              padding: '12px 16px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(248, 113, 113, 0.1)',
-              border: '1px solid rgba(248, 113, 113, 0.3)',
-              color: 'var(--error)',
-              fontSize: 14,
-              marginBottom: 20,
-            }}>
-              AI 真实生成将在下一阶段接入，请先使用「快速体验」模式生成项目。
-            </div>
-          )}
 
           {/* 生成按钮 */}
           <button
@@ -433,7 +646,7 @@ export default function Create() {
               width: '100%', padding: '14px', fontSize: 16, fontWeight: 600,
               opacity: canGenerate && !generatingRef.current ? 1 : 0.5,
             }}
-            disabled={!canGenerate || generatingRef.current}
+            disabled={!canGenerate || generatingRef.current || (mode === 'ai' && !modelConfigured && !healthLoading)}
             onClick={handleGenerate}
           >
             生成 AI 非遗短片方案
