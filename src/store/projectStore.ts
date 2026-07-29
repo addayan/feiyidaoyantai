@@ -1,4 +1,4 @@
-import type { Project } from '../types';
+import type { Project, GenerationRecord } from '../types';
 
 const STORAGE_KEY = 'heritage-studio-projects';
 
@@ -64,6 +64,18 @@ export function renameProject(id: string, newName: string): void {
     ...all[idx],
     updatedAt: new Date().toISOString(),
     data: { ...all[idx].data, title: newName },
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+}
+
+export function addGenerationRecord(id: string, record: GenerationRecord): void {
+  const all = getAllProjects();
+  const idx = all.findIndex(p => p.id === id);
+  if (idx === -1) return;
+  const history = all[idx].generationHistory ? [...all[idx].generationHistory, record] : [record];
+  all[idx] = {
+    ...all[idx],
+    generationHistory: history,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
 }
