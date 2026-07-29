@@ -25,6 +25,38 @@ export type CameraMovement =
   | '固定' | '推' | '拉' | '摇' | '移' | '跟' | '升' | '降' | '环绕'
   | '推摇' | '拉摇' | '跟移' | '航拍' | '手持';
 
+/** 构图方式 (V2.1.0 新增) */
+export type Composition =
+  | '三分法' | '中心构图' | '对称构图' | '引导线构图' | '框架构图'
+  | '对角线构图' | '留白构图' | '黄金分割' | '层次构图' | '其他';
+
+/** 光效 (V2.1.0 新增) */
+export type Lighting =
+  | '自然光' | '逆光' | '侧光' | '顶光' | '底光' | '柔光'
+  | '硬光' | '伦勃朗光' | '轮廓光' | '散射光' | '暖光' | '冷光';
+
+/** 拍摄角度 (V2.1.0 新增) */
+export type CameraAngle =
+  | '平视' | '俯视' | '仰视' | '鸟瞰' | '倾斜' | '低角度' | '过肩';
+
+/** 景深 (V2.1.0 新增) */
+export type DepthOfField =
+  | '浅景深' | '深景深' | '焦点转移' | '区域对焦' | '全景深';
+
+/** 速度 / 帧率 (V2.1.0 新增) */
+export type Speed =
+  | '正常速度' | '慢动作' | '快动作' | '定格' | '延时';
+
+/** 情绪氛围 (V2.1.0 新增) */
+export type Mood =
+  | '庄重' | '温馨' | '紧张' | '神秘' | '激昂' | '宁静'
+  | '欢快' | '哀伤' | '怀旧' | '期待' | '震撼' | '平和';
+
+/** 转场方式 (V2.1.0 新增) */
+export type Transition =
+  | '硬切' | '淡入淡出' | '叠化' | '划像' | '遮罩转场'
+  | '匹配剪辑' | '跳切' | '黑场' | '白场';
+
 /** 保存状态 */
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -85,6 +117,15 @@ export interface Shot {
   camera: CameraMovement;
   duration: string;
   description: string;
+  // === V2.1.0 新增：分镜细节（可选，兼容旧项目）===
+  composition?: Composition;
+  lighting?: Lighting;
+  cameraAngle?: CameraAngle;
+  depthOfField?: DepthOfField;
+  speed?: Speed;
+  mood?: Mood;
+  transition?: Transition;
+  // ================================================
   firstFramePrompt: string;
   lastFramePrompt: string;
   videoPrompt: string;
@@ -151,6 +192,24 @@ export interface ProjectData {
   socialPosts: SocialPosts;
 }
 
+// ===== 生成元数据（V2.1.0 新增，可选，兼容旧项目） =====
+export interface GenerationMeta {
+  mode: 'ai' | 'quick';
+  model?: string;
+  generatedAt?: string;
+  normalized?: boolean;
+  warnings?: string[];
+}
+
+// ===== 生成历史记录（V2.1.0 新增，可选） =====
+export interface GenerationRecord {
+  id: string;
+  type: 'generate' | 'regenerate-section' | 'regenerate-shot' | 'optimize-shot' | 'optimize-prompt';
+  target?: string;
+  createdAt: string;
+  model?: string;
+}
+
 // ===== 项目（含元数据） =====
 export interface Project {
   id: string;
@@ -159,6 +218,8 @@ export interface Project {
   updatedAt: string;
   data: ProjectData;
   isExample?: boolean;
+  generationMeta?: GenerationMeta;
+  generationHistory?: GenerationRecord[];
 }
 
 // ===== 案例库摘要 =====
@@ -194,3 +255,25 @@ export const DIRECTOR_SECTIONS: { key: DirectorSection; label: string; num: stri
   { key: 'submission', label: '参赛说明', num: '07' },
   { key: 'social', label: '发布文案', num: '08' },
 ];
+
+// ===== 导演风格预设 (V2.1.0 新增) =====
+export interface DirectorStylePreset {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  // 风格对应的默认参数值
+  composition?: Composition;
+  lighting?: Lighting;
+  cameraAngle?: CameraAngle;
+  depthOfField?: DepthOfField;
+  speed?: Speed;
+  mood?: Mood;
+  transition?: Transition;
+  // 运镜倾向（用于 AI 生成时参考）
+  cameraPreference?: CameraMovement;
+  // 提示词后缀（追加到 firstFramePrompt / lastFramePrompt）
+  promptSuffix?: string;
+  // 视频提示词后缀
+  videoPromptSuffix?: string;
+}
