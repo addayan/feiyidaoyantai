@@ -1,7 +1,7 @@
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DIRECTOR_SECTIONS, type DirectorSection, type Project } from '../types';
-import type { GenerationRecord } from '../types';
+import type { GenerationRecord, Composition, Lighting, CameraAngle, DepthOfField, Speed, Mood, Transition } from '../types';
 import { getProject, updateProject, addGenerationRecord as storeAddGenerationRecord } from '../store/projectStore';
 import { getExampleProject } from '../data/examples';
 import { DIRECTOR_STYLE_PRESETS } from '../data/directorStyles';
@@ -9,6 +9,98 @@ import type { DirectorStylePreset } from '../types';
 import { copyText as doCopy } from '../utils/clipboard';
 import { useAIHealth } from '../hooks/useAIHealth';
 import { regenerateSection, regenerateShot, optimizeShot, optimizePrompt } from '../api/ai';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// ===== 分镜细节字段枚举值（V2.1.0 第二层）=====
+const DETAIL_OPTIONS = {
+  composition: ['三分法', '中心构图', '对称构图', '引导线构图', '框架构图', '对角线构图', '留白构图', '黄金分割', '层次构图', '其他'] as Composition[],
+  lighting: ['自然光', '逆光', '侧光', '顶光', '底光', '柔光', '硬光', '伦勃朗光', '轮廓光', '散射光', '暖光', '冷光'] as Lighting[],
+  cameraAngle: ['平视', '俯视', '仰视', '鸟瞰', '倾斜', '低角度', '过肩'] as CameraAngle[],
+  depthOfField: ['浅景深', '深景深', '焦点转移', '区域对焦', '全景深'] as DepthOfField[],
+  speed: ['正常速度', '慢动作', '快动作', '定格', '延时'] as Speed[],
+  mood: ['庄重', '温馨', '紧张', '神秘', '激昂', '宁静', '欢快', '哀伤', '怀旧', '期待', '震撼', '平和'] as Mood[],
+  transition: ['硬切', '淡入淡出', '叠化', '划像', '遮罩转场', '匹配剪辑', '跳切', '黑场', '白场'] as Transition[],
+};
+
+const DETAIL_META: Record<string, { icon: string; label: string; color: string; bg: string }> = {
+  composition: { icon: '🎨', label: '构图', color: '#a78bfa', bg: 'rgba(139,92,246,0.12)' },
+  lighting: { icon: '💡', label: '光效', color: '#fbbf24', bg: 'rgba(251,191,36,0.12)' },
+  cameraAngle: { icon: '📐', label: '角度', color: '#38bdf8', bg: 'rgba(56,189,248,0.12)' },
+  depthOfField: { icon: '🔍', label: '景深', color: '#c084fc', bg: 'rgba(168,85,247,0.12)' },
+  speed: { icon: '⚡', label: '速度', color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
+  mood: { icon: '🎭', label: '情绪', color: '#f472b6', bg: 'rgba(244,114,182,0.12)' },
+  transition: { icon: '🔀', label: '转场', color: '#94a3b8', bg: 'rgba(148,163,184,0.12)' },
+};
+
+// ===== 可拖拽镜头卡片包装组件（V2.1.0 导演台体验优化）=====
+function SortableItem({ id, children }: { id: string; children: React.ReactNode }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    position: 'relative',
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      {/* 拖拽手柄 - 绝对定位在卡片右上角 */}
+      <div
+        {...attributes}
+        {...listeners}
+        style={{
+          position: 'absolute',
+          top: 12,
+          right: 12,
+          cursor: 'grab',
+          zIndex: 10,
+          padding: 4,
+          borderRadius: 4,
+          color: 'var(--text-muted)',
+          opacity: 0.3,
+          transition: 'opacity 0.15s',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.3'; }}
+        title="拖拽排序"
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="4" cy="4" r="1.5" />
+          <circle cx="8" cy="4" r="1.5" />
+          <circle cx="12" cy="4" r="1.5" />
+          <circle cx="4" cy="8" r="1.5" />
+          <circle cx="8" cy="8" r="1.5" />
+          <circle cx="12" cy="8" r="1.5" />
+          <circle cx="4" cy="12" r="1.5" />
+          <circle cx="8" cy="12" r="1.5" />
+          <circle cx="12" cy="12" r="1.5" />
+        </svg>
+      </div>
+      {children}
+    </div>
+  );
+}
 
 const SECTION_MAP: { key: DirectorSection; id: string }[] = [
   { key: 'story', id: 'section-story' },
@@ -43,6 +135,15 @@ export default function Director() {
   // 导演风格预设状态
   const [selectedStyleId, setSelectedStyleId] = useState<string | null>(null);
   const [showStylePanel, setShowStylePanel] = useState(false);
+
+  // 分镜细节编辑状态（V2.1.0 第二层）
+  const [editingDetail, setEditingDetail] = useState<{ shotIndex: number; field: string } | null>(null);
+
+  // 批量操作状态（V2.1.0 导演台体验优化）
+  const [selectedShots, setSelectedShots] = useState<Set<string>>(new Set());
+  const [batchEditField, setBatchEditField] = useState<string | null>(null);
+  const [batchEditValue, setBatchEditValue] = useState('');
+  const [showComparePanel, setShowComparePanel] = useState(false);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const mainRef = useRef<HTMLDivElement>(null);
@@ -88,6 +189,97 @@ export default function Director() {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, []);
+
+  // 拖拽传感器配置（V2.1.0 导演台体验优化）
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  // 拖拽排序完成处理（V2.1.0 导演台体验优化）
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    if (!data || !project) return;
+
+    const oldIndex = data.shots.findIndex((s) => s.id === active.id);
+    const newIndex = data.shots.findIndex((s) => s.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newShots = [...data.shots];
+    const [moved] = newShots.splice(oldIndex, 1);
+    newShots.splice(newIndex, 0, moved);
+
+    setData((prev) => {
+      if (!prev) return prev;
+      return { ...prev, shots: newShots };
+    });
+    if (!project.isExample) {
+      updateProject(project.id, { shots: newShots });
+    }
+    setToast('镜头顺序已更新');
+    setTimeout(() => setToast(null), 2000);
+  }, [data, project]);
+
+  // 批量操作：切换选中状态（V2.1.0 导演台体验优化）
+  const toggleShotSelection = useCallback((shotId: string) => {
+    setSelectedShots((prev) => {
+      const next = new Set(prev);
+      if (next.has(shotId)) next.delete(shotId);
+      else next.add(shotId);
+      return next;
+    });
+  }, []);
+
+  // 批量操作：全选/取消全选（V2.1.0 导演台体验优化）
+  const toggleSelectAllShots = useCallback(() => {
+    if (!data) return;
+    setSelectedShots((prev) => {
+      if (prev.size === data.shots.length) {
+        return new Set();
+      }
+      return new Set(data.shots.map((s) => s.id));
+    });
+  }, [data]);
+
+  // 批量操作：删除选中镜头（V2.1.0 导演台体验优化）
+  const handleBatchDelete = useCallback(() => {
+    if (!data || !project || selectedShots.size === 0) return;
+    const newShots = data.shots.filter((s) => !selectedShots.has(s.id));
+    setData((prev) => {
+      if (!prev) return prev;
+      return { ...prev, shots: newShots };
+    });
+    if (!project.isExample) {
+      updateProject(project.id, { shots: newShots });
+    }
+    setSelectedShots(new Set());
+    setToast(`已删除 ${selectedShots.size} 个镜头`);
+    setTimeout(() => setToast(null), 2000);
+  }, [data, project, selectedShots]);
+
+  // 批量操作：统一设置某个维度（V2.1.0 导演台体验优化）
+  const handleBatchEdit = useCallback(() => {
+    if (!data || !project || selectedShots.size === 0 || !batchEditField) return;
+    const newShots = data.shots.map((s) =>
+      selectedShots.has(s.id) ? { ...s, [batchEditField]: batchEditValue } : s
+    );
+    setData((prev) => {
+      if (!prev) return prev;
+      return { ...prev, shots: newShots };
+    });
+    if (!project.isExample) {
+      updateProject(project.id, { shots: newShots });
+    }
+    setBatchEditField(null);
+    setBatchEditValue('');
+    setSelectedShots(new Set());
+    setToast(`已批量设置 ${selectedShots.size} 个镜头`);
+    setTimeout(() => setToast(null), 2000);
+  }, [data, project, selectedShots, batchEditField, batchEditValue]);
 
   // 切换提示词展开/收起
   const togglePrompt = useCallback((shotId: string) => {
@@ -156,6 +348,22 @@ export default function Director() {
     setEditingField(null);
     setEditDraft('');
   }, []);
+
+  // 更新分镜细节字段（V2.1.0 第二层：点击标签下拉选择）
+  const updateShotDetail = useCallback((shotIndex: number, field: string, value: string) => {
+    if (!data || !project) return;
+    const newShots = data.shots.map((s, idx) =>
+      idx === shotIndex ? { ...s, [field]: value } : s
+    );
+    setData((prev) => {
+      if (!prev) return prev;
+      return { ...prev, shots: newShots };
+    });
+    if (!project.isExample) {
+      updateProject(project.id, { shots: newShots });
+    }
+    setEditingDetail(null);
+  }, [data, project]);
 
   const saveEdit = useCallback((fieldId: string, path: string[]) => {
     setData((prev) => {
@@ -933,16 +1141,47 @@ export default function Director() {
               <h2 style={{ fontSize: 22, fontWeight: 700 }}>
                 <span style={{ color: 'var(--gold)', marginRight: 8 }}>04</span>分镜导演台
               </h2>
-              {/* 导演风格预设选择器 */}
-              <button
-                className="btn btn-sm btn-secondary"
-                onClick={() => setShowStylePanel(!showStylePanel)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-              >
-                {selectedStyleId
-                  ? `${DIRECTOR_STYLE_PRESETS.find((s) => s.id === selectedStyleId)?.icon ?? ''} ${DIRECTOR_STYLE_PRESETS.find((s) => s.id === selectedStyleId)?.name ?? '风格'}`
-                  : '🎬 导演风格预设'}
-              </button>
+              {/* 批量操作工具栏（V2.1.0 导演台体验优化） */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {selectedShots.size > 0 && (
+                  <>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)', paddingRight: 4 }}>
+                      已选 {selectedShots.size} 个
+                    </span>
+                    <button className="btn btn-sm btn-ghost" onClick={toggleSelectAllShots}>
+                      {selectedShots.size === data.shots.length ? '取消全选' : '全选'}
+                    </button>
+                    {selectedShots.size >= 2 && (
+                      <button className="btn btn-sm btn-ghost" onClick={() => setShowComparePanel(true)}>
+                        对比
+                      </button>
+                    )}
+                    <button className="btn btn-sm btn-ghost" onClick={() => setBatchEditField('composition')}>
+                      批量编辑
+                    </button>
+                    <button
+                      className="btn btn-sm btn-ghost"
+                      onClick={handleBatchDelete}
+                      style={{ color: 'var(--error)' }}
+                    >
+                      删除
+                    </button>
+                    <button className="btn btn-sm btn-ghost" onClick={() => setSelectedShots(new Set())}>
+                      取消
+                    </button>
+                  </>
+                )}
+                {/* 导演风格预设选择器 */}
+                <button
+                  className="btn btn-sm btn-secondary"
+                  onClick={() => setShowStylePanel(!showStylePanel)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                  {selectedStyleId
+                    ? `${DIRECTOR_STYLE_PRESETS.find((s) => s.id === selectedStyleId)?.icon ?? ''} ${DIRECTOR_STYLE_PRESETS.find((s) => s.id === selectedStyleId)?.name ?? '风格'}`
+                    : '🎬 导演风格预设'}
+                </button>
+              </div>
             </div>
 
             {/* 风格预设面板 */}
@@ -989,94 +1228,193 @@ export default function Director() {
                   风格预设基于电影流派和美学特征，不使用导演姓名，避免版权风险。应用后所有镜头的7个维度参数将自动填充，提示词将追加风格描述后缀。
                 </p>
               </div>
+          )}
+
+            {/* 批量编辑面板（V2.1.0 导演台体验优化） */}
+            {batchEditField && (
+              <div className="card" style={{ padding: 16, marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
+                  批量编辑：{DETAIL_META[batchEditField]?.label}
+                </span>
+                <select
+                  value={batchEditValue}
+                  onChange={(e) => setBatchEditValue(e.target.value)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border)',
+                    background: 'var(--bg-input)',
+                    color: 'var(--text-primary)',
+                    fontSize: 14,
+                    outline: 'none',
+                  }}
+                >
+                  <option value="">选择{DETAIL_META[batchEditField]?.label}...</option>
+                  {(DETAIL_OPTIONS as any)[batchEditField]?.map((opt: string) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+                <button className="btn btn-sm btn-primary" onClick={handleBatchEdit} disabled={!batchEditValue}>应用</button>
+                <button className="btn btn-sm btn-ghost" onClick={() => { setBatchEditField(null); setBatchEditValue(''); }}>取消</button>
+              </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {data.shots.map((shot, i) => {
-                const isExpanded = expandedShots.has(shot.id);
-                return (
-                  <div key={shot.id} className="card" style={{ padding: 20 }}>
-                    {/* 镜头头部 */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <span
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={data.shots.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  {data.shots.map((shot, i) => {
+                    const isExpanded = expandedShots.has(shot.id);
+                    const isLast = i === data.shots.length - 1;
+                    return (
+                      <SortableItem key={shot.id} id={shot.id}>
+                    <div className="card" style={{ padding: 20 }}>
+                    {/* 镜头头部 + 缩略图占位区 */}
+                    <div style={{ display: 'flex', gap: 14, marginBottom: 12 }}>
+                      {/* 左侧：缩略图占位区 + 批量复选框（V2.1.0 导演台体验优化） */}
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <div
                           style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: '50%',
-                            background: 'var(--gold-dim)',
-                            color: 'var(--gold)',
+                            width: 120,
+                            height: 72,
+                            borderRadius: 'var(--radius-sm)',
+                            background: selectedShots.has(shot.id) ? 'rgba(139,92,246,0.06)' : 'rgba(255,255,255,0.03)',
+                            border: selectedShots.has(shot.id) ? '1px dashed rgba(139,92,246,0.5)' : '1px dashed var(--border)',
                             display: 'flex',
+                            flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: 14,
-                            fontWeight: 700,
-                            flexShrink: 0,
+                            gap: 2,
+                            cursor: 'default',
+                            overflow: 'hidden',
+                            transition: 'all 0.15s',
                           }}
                         >
-                          {i + 1}
-                        </span>
-                        <div>
-                          <div style={{ display: 'flex', gap: 6, marginBottom: 2, flexWrap: 'wrap' }}>
-                            <span className="tag">{shot.shotSize}</span>
-                            <span className="tag tag-teal">{shot.camera}</span>
-                            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{shot.duration}</span>
-                          </div>
-                          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{shot.scene}</span>
+                          <span style={{ fontSize: 22, opacity: 0.3 }}>🎬</span>
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)', opacity: 0.5 }}>首帧预览</span>
                         </div>
+                        {/* 批量复选框 */}
+                        <input
+                          type="checkbox"
+                          checked={selectedShots.has(shot.id)}
+                          onChange={() => toggleShotSelection(shot.id)}
+                          style={{
+                            position: 'absolute',
+                            top: 6,
+                            right: 6,
+                            width: 18,
+                            height: 18,
+                            cursor: 'pointer',
+                            zIndex: 5,
+                            accentColor: 'var(--gold)',
+                          }}
+                          title="选中进行批量操作"
+                        />
                       </div>
-                      <div
-                        style={{
-                          padding: '4px 12px',
-                          borderRadius: 'var(--radius-sm)',
-                          background: shot.generatabilityScore >= 85 ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)',
-                          color: shot.generatabilityScore >= 85 ? 'var(--success)' : 'var(--warning)',
-                          fontSize: 14,
-                          fontWeight: 600,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {shot.generatabilityScore} / 100
+
+                      {/* 右侧：镜头信息 */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span
+                              style={{
+                                width: 28,
+                                height: 28,
+                                borderRadius: '50%',
+                                background: 'var(--gold-dim)',
+                                color: 'var(--gold)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 13,
+                                fontWeight: 700,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {i + 1}
+                            </span>
+                            <div>
+                              <div style={{ display: 'flex', gap: 5, marginBottom: 2, flexWrap: 'wrap' }}>
+                                <span className="tag" style={{ fontSize: 11 }}>{shot.shotSize}</span>
+                                <span className="tag tag-teal" style={{ fontSize: 11 }}>{shot.camera}</span>
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{shot.duration}</span>
+                              </div>
+                              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{shot.scene}</span>
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              padding: '3px 10px',
+                              borderRadius: 'var(--radius-sm)',
+                              background: shot.generatabilityScore >= 85 ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)',
+                              color: shot.generatabilityScore >= 85 ? 'var(--success)' : 'var(--warning)',
+                              fontSize: 13,
+                              fontWeight: 600,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {shot.generatabilityScore}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* 分镜规格标签 (V2.1.0 新增) */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 10px', marginBottom: 12 }}>
-                      {shot.composition && (
-                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(139,92,246,0.12)', color: '#a78bfa', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 10 }}>🎨</span>构图 · {shot.composition}
-                        </span>
-                      )}
-                      {shot.lighting && (
-                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(251,191,36,0.12)', color: '#fbbf24', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 10 }}>💡</span>光效 · {shot.lighting}
-                        </span>
-                      )}
-                      {shot.cameraAngle && (
-                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(56,189,248,0.12)', color: '#38bdf8', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 10 }}>📐</span>角度 · {shot.cameraAngle}
-                        </span>
-                      )}
-                      {shot.depthOfField && (
-                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(168,85,247,0.12)', color: '#c084fc', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 10 }}>🔍</span>景深 · {shot.depthOfField}
-                        </span>
-                      )}
-                      {shot.speed && (
-                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(52,211,153,0.12)', color: '#34d399', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 10 }}>⚡</span>速度 · {shot.speed}
-                        </span>
-                      )}
-                      {shot.mood && (
-                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(244,114,182,0.12)', color: '#f472b6', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 10 }}>🎭</span>情绪 · {shot.mood}
-                        </span>
-                      )}
-                      {shot.transition && (
-                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 10, background: 'rgba(148,163,184,0.12)', color: '#94a3b8', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 10 }}>🔀</span>转场 · {shot.transition}
-                        </span>
-                      )}
+                    {/* 分镜规格标签栏 (V2.1.0 第二层：可点击编辑) */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 8px', marginBottom: 12 }}>
+                      {Object.entries(DETAIL_META).map(([field, meta]) => {
+                        const value = (shot as any)[field];
+                        const isEditing = editingDetail?.shotIndex === i && editingDetail.field === field;
+                        return (
+                          <div key={field} style={{ position: 'relative' }}>
+                            {isEditing ? (
+                              <select
+                                autoFocus
+                                value={value || ''}
+                                onChange={(e) => updateShotDetail(i, field, e.target.value)}
+                                onBlur={() => setEditingDetail(null)}
+                                style={{
+                                  fontSize: 12,
+                                  padding: '3px 8px',
+                                  borderRadius: 10,
+                                  border: `1px solid ${meta.color}`,
+                                  background: 'var(--bg-input)',
+                                  color: meta.color,
+                                  cursor: 'pointer',
+                                  outline: 'none',
+                                }}
+                              >
+                                {!value && <option value="">选择{meta.label}</option>}
+                                {(DETAIL_OPTIONS as any)[field].map((opt: string) => (
+                                  <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                              </select>
+                            ) : (
+                              <button
+                                onClick={() => setEditingDetail({ shotIndex: i, field })}
+                                style={{
+                                  fontSize: 12,
+                                  padding: '3px 10px',
+                                  borderRadius: 10,
+                                  border: '1px solid transparent',
+                                  background: value ? meta.bg : 'rgba(255,255,255,0.02)',
+                                  color: value ? meta.color : 'var(--text-muted)',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s',
+                                  opacity: value ? 1 : 0.5,
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.borderColor = meta.color + '40'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.opacity = value ? '1' : '0.5'; e.currentTarget.style.borderColor = 'transparent'; }}
+                                title={`点击编辑${meta.label}`}
+                              >
+                                <span style={{ fontSize: 10 }}>{meta.icon}</span>
+                                {value ? `${meta.label} · ${value}` : `+ ${meta.label}`}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
 
                     {/* 画面描述 */}
@@ -1159,6 +1497,24 @@ export default function Director() {
                     {/* 展开的提示词 */}
                     {isExpanded && (
                       <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                        {/* 镜头参数概览表 (V2.1.0 第二层新增) */}
+                        <div style={{ marginBottom: 16, padding: 12, borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.02)' }}>
+                          <h5 style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-muted)' }}>镜头参数概览</h5>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+                            {Object.entries(DETAIL_META).map(([field, meta]) => {
+                              const val = (shot as any)[field];
+                              return (
+                                <div key={field} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                                  <span style={{ color: 'var(--text-muted)' }}>{meta.icon}{meta.label}</span>
+                                  <span style={{ color: val ? meta.color : 'var(--text-muted)', fontWeight: val ? 500 : 400 }}>
+                                    {val || '—'}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
                         <div className="prompt-block">
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                             <h5>首帧图片提示词</h5>
@@ -1278,10 +1634,113 @@ export default function Director() {
                         </div>
                       </div>
                     )}
-                  </div>
-                );
-              })}
-            </div>
+                    </div>
+
+                    {/* 转场指示箭头 (V2.1.0 第二层新增) */}
+                    {!isLast && (
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '6px 0', gap: 8 }}>
+                        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                        <span style={{
+                          fontSize: 11,
+                          padding: '2px 10px',
+                          borderRadius: 10,
+                          background: 'rgba(148,163,184,0.08)',
+                          color: 'var(--text-muted)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}>
+                          {shot.transition ? (
+                            <>
+                              <span>↓</span>
+                              <span style={{ color: '#94a3b8' }}>{shot.transition}</span>
+                            </>
+                          ) : (
+                            <span>↓ 硬切</span>
+                          )}
+                        </span>
+                        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                      </div>
+                    )}
+                      </SortableItem>
+                    );
+                  })}
+                </div>
+              </SortableContext>
+            </DndContext>
+
+            {/* 镜头对比面板（V2.1.0 导演台体验优化） */}
+            {showComparePanel && selectedShots.size >= 2 && (
+              <div className="card" style={{ padding: 20, marginTop: 24 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <h4 style={{ fontSize: 15, fontWeight: 600 }}>镜头对比 ({selectedShots.size} 个)</h4>
+                  <button className="btn btn-sm btn-ghost" onClick={() => setShowComparePanel(false)}>关闭</button>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', fontWeight: 500 }}>参数</th>
+                        {data.shots
+                          .filter((s) => selectedShots.has(s.id))
+                          .map((s, idx) => (
+                            <th key={s.id} style={{ textAlign: 'left', padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', fontWeight: 600 }}>
+                              镜头 {data.shots.findIndex((shot) => shot.id === s.id) + 1}
+                            </th>
+                          ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>场景</td>
+                        {data.shots.filter((s) => selectedShots.has(s.id)).map((s) => (
+                          <td key={s.id} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)' }}>{s.scene}</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>景别</td>
+                        {data.shots.filter((s) => selectedShots.has(s.id)).map((s) => (
+                          <td key={s.id} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)' }}>{s.shotSize}</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>运镜</td>
+                        {data.shots.filter((s) => selectedShots.has(s.id)).map((s) => (
+                          <td key={s.id} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)' }}>{s.camera}</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>时长</td>
+                        {data.shots.filter((s) => selectedShots.has(s.id)).map((s) => (
+                          <td key={s.id} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)' }}>{s.duration}</td>
+                        ))}
+                      </tr>
+                      {Object.entries(DETAIL_META).map(([field, meta]) => (
+                        <tr key={field}>
+                          <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>{meta.label}</td>
+                          {data.shots.filter((s) => selectedShots.has(s.id)).map((s) => {
+                            const val = (s as any)[field];
+                            return (
+                              <td key={s.id} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: val ? meta.color : 'var(--text-muted)' }}>
+                                {val || '—'}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                      <tr>
+                        <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>可生成性</td>
+                        {data.shots.filter((s) => selectedShots.has(s.id)).map((s) => (
+                          <td key={s.id} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: s.generatabilityScore >= 85 ? 'var(--success)' : 'var(--warning)', fontWeight: 600 }}>
+                            {s.generatabilityScore}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* ===== 05 声音设计 ===== */}
