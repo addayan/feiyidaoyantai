@@ -58,7 +58,7 @@ export default function Navbar() {
             borderRadius: 4,
             padding: '1px 6px',
           }}>
-            V2.0
+            V2.2 BY 阿岩
           </span>
         </Link>
 
