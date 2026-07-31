@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import EmptyState from '../components/EmptyState';
-import { getAllProjects, deleteProject, renameProject } from '../store/projectStore';
+import { getAllProjects, deleteProject, renameProject, createProject } from '../store/projectStore';
 import type { Project } from '../types';
 
 export default function MyProjects() {
@@ -9,9 +9,50 @@ export default function MyProjects() {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const refresh = () => setProjects(getAllProjects());
+
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  // 导入项目 JSON（V2.2.0 新增）
+  const handleFileImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target?.result as string);
+        if (!parsed.data || !parsed.data.title) {
+          showToast('导入失败：文件格式不正确');
+          return;
+        }
+        const now = new Date().toISOString();
+        const newProject: Project = {
+          ...parsed,
+          id: `proj-${Date.now()}`,
+          slug: `proj-${Date.now()}`,
+          createdAt: now,
+          updatedAt: now,
+          isExample: false,
+        };
+        delete (newProject as any)._exportMeta;
+        createProject(newProject);
+        showToast(`项目「${newProject.data.title}」导入成功`);
+        refresh();
+        setTimeout(() => navigate('/director/' + newProject.id), 800);
+      } catch (err) {
+        showToast('导入失败：JSON 解析错误');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }, [navigate, showToast]);
 
   useEffect(() => {
     refresh();
@@ -43,7 +84,29 @@ export default function MyProjects() {
         <div className="page-container">
           <h1 className="page-title">我的项目</h1>
           <p className="page-subtitle">AI 生成的非遗短片方案会自动保存在这里</p>
+          <div style={{ marginBottom: 24 }}>
+            <button className="btn btn-sm btn-secondary" onClick={() => fileInputRef.current?.click()} title="从 JSON 文件导入项目">
+              导入项目
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,application/json"
+              onChange={handleFileImport}
+              style={{ display: 'none' }}
+            />
+          </div>
           <EmptyState />
+          {toast && (
+            <div style={{
+              position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+              background: 'rgba(10,14,26,0.95)', border: '1px solid var(--border-gold)',
+              color: 'var(--gold)', padding: '10px 20px', borderRadius: 'var(--radius-sm)',
+              fontSize: 14, zIndex: 2000, boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+            }}>
+              {toast}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -53,7 +116,21 @@ export default function MyProjects() {
     <div className="page">
       <div className="page-container">
         <h1 className="page-title">我的项目</h1>
-        <p className="page-subtitle">共 {projects.length} 个项目</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <p className="page-subtitle" style={{ margin: 0 }}>共 {projects.length} 个项目</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-sm btn-secondary" onClick={() => fileInputRef.current?.click()} title="从 JSON 文件导入项目">
+              导入项目
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,application/json"
+              onChange={handleFileImport}
+              style={{ display: 'none' }}
+            />
+          </div>
+        </div>
 
         <div style={{
           display: 'grid',
@@ -159,6 +236,16 @@ export default function MyProjects() {
             </div>
           ))}
         </div>
+        {toast && (
+          <div style={{
+            position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+            background: 'rgba(10,14,26,0.95)', border: '1px solid var(--border-gold)',
+            color: 'var(--gold)', padding: '10px 20px', borderRadius: 'var(--radius-sm)',
+            fontSize: 14, zIndex: 2000, boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          }}>
+            {toast}
+          </div>
+        )}
       </div>
     </div>
   );
