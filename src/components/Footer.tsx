@@ -109,7 +109,7 @@ export default function Footer() {
           }}>
             TRAE AI 创造力大赛参赛作品
           </span>
-          <span>V2.1.0</span>
+          <span>V2.2.0 BY 阿岩</span>
         </div>
         <div>
           &copy; 2026 非遗影像工坊 · All Rights Reserved
