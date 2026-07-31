@@ -2,7 +2,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DIRECTOR_SECTIONS, type DirectorSection, type Project } from '../types';
 import type { GenerationRecord, Composition, Lighting, CameraAngle, DepthOfField, Speed, Mood, Transition } from '../types';
-import { getProject, updateProject, addGenerationRecord as storeAddGenerationRecord } from '../store/projectStore';
+import { getProject, updateProject, createProject, addGenerationRecord as storeAddGenerationRecord } from '../store/projectStore';
 import { getExampleProject } from '../data/examples';
 import { DIRECTOR_STYLE_PRESETS } from '../data/directorStyles';
 import type { DirectorStylePreset } from '../types';
@@ -44,6 +44,52 @@ const DETAIL_META: Record<string, { icon: string; label: string; color: string; 
   mood: { icon: '🎭', label: '情绪', color: '#f472b6', bg: 'rgba(244,114,182,0.12)' },
   transition: { icon: '🔀', label: '转场', color: '#94a3b8', bg: 'rgba(148,163,184,0.12)' },
 };
+
+// ===== 前端镜头细节补齐（V2.2.0 新增，与后端 fillMissingShotDetails 保持一致）=====
+function fillMissingShotDetailsClient(shot: any, index: number, totalShots: number): void {
+  if (!shot.composition) {
+    const map: Record<string, string> = { '特写': '中心构图', '近景': '中心构图', '中景': '三分法', '中近景': '三分法', '全景': '层次构图', '远景': '引导线构图', '大远景': '黄金分割' };
+    shot.composition = map[shot.shotSize] || '三分法';
+  }
+  if (!shot.lighting) {
+    const d = String(shot.description || '');
+    if (/黄昏|夕阳|暖光|温暖/.test(d)) shot.lighting = '暖光';
+    else if (/逆光|剪影|轮廓/.test(d)) shot.lighting = '逆光';
+    else if (/室内|工坊|屋内/.test(d)) shot.lighting = '柔光';
+    else if (/室外|户外|自然/.test(d)) shot.lighting = '自然光';
+    else if (/冷|蓝|夜/.test(d)) shot.lighting = '冷光';
+    else shot.lighting = '柔光';
+  }
+  if (!shot.cameraAngle) {
+    const map: Record<string, string> = { '固定': '平视', '推': '平视', '拉': '平视', '摇': '平视', '移': '平视', '跟': '平视', '升': '仰视', '降': '俯视', '航拍': '鸟瞰', '环绕': '低角度' };
+    shot.cameraAngle = map[shot.camera] || '平视';
+  }
+  if (!shot.depthOfField) {
+    const map: Record<string, string> = { '特写': '浅景深', '近景': '浅景深', '中景': '浅景深', '中近景': '浅景深', '全景': '深景深', '远景': '深景深', '大远景': '全景深' };
+    shot.depthOfField = map[shot.shotSize] || '浅景深';
+  }
+  if (!shot.speed) {
+    const d = String(shot.description || '');
+    if (/慢|缓|凝/.test(d)) shot.speed = '慢动作';
+    else if (/快|疾|飞/.test(d)) shot.speed = '快动作';
+    else if (/定格|静止/.test(d)) shot.speed = '定格';
+    else shot.speed = '正常速度';
+  }
+  if (!shot.mood) {
+    const d = String(shot.description || '');
+    if (/庄|肃|敬/.test(d)) shot.mood = '庄重';
+    else if (/温|暖|柔/.test(d)) shot.mood = '温馨';
+    else if (/紧|急|险/.test(d)) shot.mood = '紧张';
+    else if (/神|秘|幽/.test(d)) shot.mood = '神秘';
+    else if (/宁|静|安/.test(d)) shot.mood = '宁静';
+    else if (/怀|旧|忆/.test(d)) shot.mood = '怀旧';
+    else if (index >= totalShots - 2) shot.mood = '期待';
+    else shot.mood = '庄重';
+  }
+  if (!shot.transition) {
+    shot.transition = (index === totalShots - 1) ? '淡入淡出' : '硬切';
+  }
+}
 
 // ===== 可拖拽镜头卡片包装组件（V2.1.0 导演台体验优化）=====
 function SortableItem({ id, children }: { id: string; children: React.ReactNode }) {
@@ -147,12 +193,21 @@ export default function Director() {
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const mainRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 加载项目数据
   useEffect(() => {
     if (!projectId) return;
     const isExample = searchParams.get('mode') === 'example';
     const found = isExample ? getExampleProject(projectId) : getProject(projectId);
+    // V2.2.0：补齐旧项目缺失的镜头细节字段
+    if (found?.data?.shots) {
+      found.data.shots = found.data.shots.map((s: any, i: number) => {
+        const shot = { ...s };
+        fillMissingShotDetailsClient(shot, i, found.data.shots.length);
+        return shot;
+      });
+    }
     setProject(found);
     setData(found?.data ?? null);
   }, [projectId, searchParams]);
@@ -547,6 +602,63 @@ export default function Director() {
     setToast(message);
     setTimeout(() => setToast(null), 3000);
   }, []);
+
+  // 导出项目为 JSON（V2.2.0 新增）
+  const exportProjectJSON = useCallback(() => {
+    if (!project) return;
+    const exportData = {
+      ...project,
+      _exportMeta: {
+        app: '非遗影像工坊',
+        version: 'V2.2.0',
+        exportedAt: new Date().toISOString(),
+        exportedBy: '阿岩',
+      },
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(project.data.title || '未命名项目').replace(/[\\/:*?"<>|]/g, '')}-非遗影像工坊.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('项目已导出为 JSON 文件');
+  }, [project, showToast]);
+
+  // 导入项目 JSON（V2.2.0 新增）
+  const handleFileImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target?.result as string);
+        if (!parsed.data || !parsed.data.title) {
+          showToast('导入失败：文件格式不正确');
+          return;
+        }
+        const now = new Date().toISOString();
+        const newProject: Project = {
+          ...parsed,
+          id: `proj-${Date.now()}`,
+          slug: `proj-${Date.now()}`,
+          createdAt: now,
+          updatedAt: now,
+          isExample: false,
+        };
+        delete (newProject as any)._exportMeta;
+        createProject(newProject);
+        showToast(`项目「${newProject.data.title}」导入成功`);
+        setTimeout(() => navigate('/director/' + newProject.id), 500);
+      } catch (err) {
+        showToast('导入失败：JSON 解析错误');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }, [navigate, showToast]);
 
   // 应用导演风格预设到所有镜头
   const applyStylePreset = useCallback((preset: DirectorStylePreset) => {
@@ -950,7 +1062,16 @@ export default function Director() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button className="btn btn-sm btn-ghost" onClick={() => navigate('/create')}>继续创作</button>
               <button className="btn btn-sm btn-secondary" onClick={exportMarkdown}>导出 Markdown</button>
+              <button className="btn btn-sm btn-secondary" onClick={exportProjectJSON} title="导出完整项目数据（含分镜、角色、场景）为 JSON 文件，可备份或分享">导出项目</button>
+              <button className="btn btn-sm btn-ghost" onClick={() => fileInputRef.current?.click()} title="从 JSON 文件导入项目">导入项目</button>
               <button className="btn btn-sm btn-teal" onClick={copyAllPrompts}>复制全部提示词</button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                onChange={handleFileImport}
+                style={{ display: 'none' }}
+              />
             </div>
           </div>
 
@@ -1503,12 +1624,31 @@ export default function Director() {
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
                             {Object.entries(DETAIL_META).map(([field, meta]) => {
                               const val = (shot as any)[field];
+                              const isEditing = editingDetail?.shotIndex === i && editingDetail?.field === field;
                               return (
                                 <div key={field} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
                                   <span style={{ color: 'var(--text-muted)' }}>{meta.icon}{meta.label}</span>
-                                  <span style={{ color: val ? meta.color : 'var(--text-muted)', fontWeight: val ? 500 : 400 }}>
-                                    {val || '—'}
-                                  </span>
+                                  {isEditing ? (
+                                    <select
+                                      autoFocus
+                                      value={val || ''}
+                                      onChange={(e) => updateShotDetail(i, field, e.target.value)}
+                                      onBlur={() => setEditingDetail(null)}
+                                      style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', cursor: 'pointer' }}
+                                    >
+                                      {(DETAIL_OPTIONS as any)[field]?.map((opt: string) => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                      ))}
+                                    </select>
+                                  ) : (
+                                    <span
+                                      style={{ color: val ? meta.color : 'var(--text-muted)', fontWeight: val ? 500 : 400, cursor: 'pointer', borderBottom: val ? 'none' : '1px dashed var(--text-muted)', paddingBottom: 1 }}
+                                      onClick={() => setEditingDetail({ shotIndex: i, field })}
+                                      title="点击编辑"
+                                    >
+                                      {val || '—'}
+                                    </span>
+                                  )}
                                 </div>
                               );
                             })}
