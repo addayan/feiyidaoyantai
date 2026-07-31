@@ -7,7 +7,7 @@ import { calculateGeneratabilityScore } from '../utils/score';
 import { buildOptimizeShotPrompt } from '../prompts/optimize-shot';
 import { buildOptimizePromptFieldPrompt } from '../prompts/optimize-prompt';
 import { callArkAPI, aiErrorResponse } from './generate';
-import { validateShotDetailFields } from '../utils/normalize';
+import { validateShotDetailFields, fillMissingShotDetails } from '../utils/normalize';
 
 const router = Router();
 
@@ -41,6 +41,8 @@ router.post('/api/optimize-shot', async (req: Request, res: Response) => {
 
     // 校验分镜细节字段（V2.1.0 新增）
     validateShotDetailFields(parsed);
+    // 补齐缺失的分镜细节字段（V2.2.0 新增）
+    fillMissingShotDetails(parsed, shotIndex, 8);
 
     // 重新计算可生成性评分
     const { score, checks } = calculateGeneratabilityScore(parsed);
