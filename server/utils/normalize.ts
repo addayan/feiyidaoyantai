@@ -41,6 +41,75 @@ export function validateShotDetailFields(shot: any): void {
 }
 
 /**
+ * 为缺失的分镜细节字段补齐智能默认值。
+ * 根据 shotSize / camera / description / index 推断最合适的值。
+ */
+export function fillMissingShotDetails(shot: any, index: number, totalShots: number): void {
+  // 构图
+  if (!shot.composition) {
+    const sizeToComposition: Record<string, string> = {
+      '特写': '中心构图', '近景': '中心构图',
+      '中景': '三分法', '中近景': '三分法',
+      '全景': '层次构图', '远景': '引导线构图', '大远景': '黄金分割',
+    };
+    shot.composition = sizeToComposition[shot.shotSize] || '三分法';
+  }
+  // 光效
+  if (!shot.lighting) {
+    const desc = String(shot.description || '');
+    if (/黄昏|夕阳|暖光|温暖/.test(desc)) shot.lighting = '暖光';
+    else if (/逆光|剪影|轮廓/.test(desc)) shot.lighting = '逆光';
+    else if (/室内|工坊|屋内/.test(desc)) shot.lighting = '柔光';
+    else if (/室外|户外|自然/.test(desc)) shot.lighting = '自然光';
+    else if (/冷|蓝|夜/.test(desc)) shot.lighting = '冷光';
+    else shot.lighting = '柔光';
+  }
+  // 拍摄角度
+  if (!shot.cameraAngle) {
+    const cameraToAngle: Record<string, string> = {
+      '固定': '平视', '推': '平视', '拉': '平视',
+      '摇': '平视', '移': '平视', '跟': '平视',
+      '升': '仰视', '降': '俯视',
+      '航拍': '鸟瞰', '环绕': '低角度',
+    };
+    shot.cameraAngle = cameraToAngle[shot.camera] || '平视';
+  }
+  // 景深
+  if (!shot.depthOfField) {
+    const sizeToDof: Record<string, string> = {
+      '特写': '浅景深', '近景': '浅景深',
+      '中景': '浅景深', '中近景': '浅景深',
+      '全景': '深景深', '远景': '深景深', '大远景': '全景深',
+    };
+    shot.depthOfField = sizeToDof[shot.shotSize] || '浅景深';
+  }
+  // 速度
+  if (!shot.speed) {
+    const desc = String(shot.description || '');
+    if (/慢|缓|凝/.test(desc)) shot.speed = '慢动作';
+    else if (/快|疾|飞/.test(desc)) shot.speed = '快动作';
+    else if (/定格|静止/.test(desc)) shot.speed = '定格';
+    else shot.speed = '正常速度';
+  }
+  // 情绪
+  if (!shot.mood) {
+    const desc = String(shot.description || '');
+    if (/庄|肃|敬/.test(desc)) shot.mood = '庄重';
+    else if (/温|暖|柔/.test(desc)) shot.mood = '温馨';
+    else if (/紧|急|险/.test(desc)) shot.mood = '紧张';
+    else if (/神|秘|幽/.test(desc)) shot.mood = '神秘';
+    else if (/宁|静|安/.test(desc)) shot.mood = '宁静';
+    else if (/怀|旧|忆/.test(desc)) shot.mood = '怀旧';
+    else if (index >= totalShots - 2) shot.mood = '期待';
+    else shot.mood = '庄重';
+  }
+  // 转场
+  if (!shot.transition) {
+    shot.transition = (index === totalShots - 1) ? '淡入淡出' : '硬切';
+  }
+}
+
+/**
  * 标准化 AI 生成的原始数据，确保所有字段完整、镜头数量为 8 个。
  */
 export function normalizeGeneratedResult(raw: any, request: GenerateRequest): any {
@@ -308,6 +377,8 @@ function normalizeShots(shots: any[], request: GenerateRequest, scenes: any[]): 
     }
     // 校验分镜细节字段（V2.1.0 新增）
     validateShotDetailFields(s);
+    // 补齐缺失的分镜细节字段（V2.2.0 新增）
+    fillMissingShotDetails(s, i, 8);
     // 确保 id 格式正确
     s.id = `shot-${i + 1}`;
     // 重新计算可生成性评分
