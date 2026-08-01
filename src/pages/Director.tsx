@@ -204,6 +204,7 @@ export default function Director() {
     if (found?.data?.shots) {
       found.data.shots = found.data.shots.map((s: any, i: number) => {
         const shot = { ...s };
+        if (!shot.id) shot.id = `shot-${i + 1}`;
         fillMissingShotDetailsClient(shot, i, found.data.shots.length);
         return shot;
       });
@@ -512,9 +513,9 @@ export default function Director() {
       md.push('');
       md.push('| 检查项 | 状态 | 说明 |');
       md.push('|--------|------|------|');
-      shot.generatabilityChecks.forEach(check => {
-        const status = check.status === 'pass' ? '✓' : check.status === 'warn' ? '△' : '✗';
-        md.push(`| ${check.label} | ${status} | ${check.detail} |`);
+      (shot.generatabilityChecks || []).forEach(check => {
+        const status = (check.status || '') === 'pass' ? '✓' : (check.status || '') === 'warn' ? '△' : '✗';
+        md.push(`| ${check.label || ''} | ${status} | ${check.detail || ''} |`);
       });
       md.push('');
     });
@@ -532,21 +533,21 @@ export default function Director() {
 
     md.push('## 文化表达检查');
     md.push('');
-    md.push(`**综合评分：${d.cultureCheck.overallScore} / 100**`);
+    md.push(`**综合评分：${d.cultureCheck?.overallScore ?? 0} / 100**`);
     md.push('');
     md.push('| 检查项 | 状态 |');
     md.push('|--------|------|');
-    d.cultureCheck.items.forEach(item => {
-      md.push(`| ${item.label} | ${item.status} |`);
+    (d.cultureCheck?.items || []).forEach(item => {
+      md.push(`| ${item.label || ''} | ${item.status || ''} |`);
     });
     md.push('');
     md.push('**注意事项：**');
-    md.push(d.cultureCheck.notes);
+    md.push(d.cultureCheck?.notes || '');
     md.push('');
     md.push('**优化建议：**');
-    md.push(d.cultureCheck.suggestions);
+    md.push(d.cultureCheck?.suggestions || '');
     md.push('');
-    if (d.cultureCheck.disclaimer) {
+    if (d.cultureCheck?.disclaimer) {
       md.push('**免责声明：**');
       md.push(d.cultureCheck.disclaimer);
       md.push('');
@@ -1130,7 +1131,7 @@ export default function Director() {
               <span style={{ color: 'var(--gold)', marginRight: 8 }}>02</span>角色设定
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {data.characters.map((char, i) => (
+              {(data.characters || []).map((char, i) => (
                 <div key={i} className="card">
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     {([
@@ -1198,7 +1199,7 @@ export default function Director() {
               <span style={{ color: 'var(--gold)', marginRight: 8 }}>03</span>场景设定
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {data.scenes.map((scene, i) => (
+              {(data.scenes || []).map((scene, i) => (
                 <div key={i} className="card">
                   <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12, color: 'var(--gold)' }}>{scene.name}</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -1381,11 +1382,11 @@ export default function Director() {
             )}
 
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={data.shots.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={(data.shots || []).map((s) => s.id)} strategy={verticalListSortingStrategy}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                  {data.shots.map((shot, i) => {
+                  {(data.shots || []).map((shot, i) => {
                     const isExpanded = expandedShots.has(shot.id);
-                    const isLast = i === data.shots.length - 1;
+                    const isLast = i === (data.shots || []).length - 1;
                     return (
                       <SortableItem key={shot.id} id={shot.id}>
                     <div className="card" style={{ padding: 20 }}>
@@ -1560,7 +1561,7 @@ export default function Director() {
 
                     {/* 可生成性检查 */}
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-                      {shot.generatabilityChecks.map((check, ci) => (
+                      {(shot.generatabilityChecks || []).map((check, ci) => (
                         <span
                           key={ci}
                           style={{
@@ -1945,12 +1946,12 @@ export default function Director() {
                     backgroundClip: 'text',
                   }}
                 >
-                  {data.cultureCheck.overallScore} <span style={{ fontSize: 20, fontWeight: 400 }}>/ 100</span>
+                  {data.cultureCheck?.overallScore ?? 0} <span style={{ fontSize: 20, fontWeight: 400 }}>/ 100</span>
                 </div>
               </div>
 
               <div className="card">
-                {data.cultureCheck.items.map((item, i) => (
+                {(data.cultureCheck?.items || []).map((item, i) => (
                   <div
                     key={i}
                     style={{
@@ -1958,7 +1959,7 @@ export default function Director() {
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       padding: '10px 0',
-                      borderBottom: i < data.cultureCheck.items.length - 1 ? '1px solid var(--border)' : 'none',
+                      borderBottom: i < (data.cultureCheck?.items || []).length - 1 ? '1px solid var(--border)' : 'none',
                     }}
                   >
                     <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{item.label}</span>
@@ -1967,7 +1968,7 @@ export default function Director() {
                         fontSize: 13,
                         fontWeight: 500,
                         color:
-                          item.status.includes('良好') || item.status === '已说明' || item.status === '正常' || item.status === '低'
+                          (item.status || '').includes('良好') || item.status === '已说明' || item.status === '正常' || item.status === '低'
                             ? 'var(--success)'
                             : 'var(--warning)',
                       }}
@@ -1980,15 +1981,15 @@ export default function Director() {
 
               <div className="card">
                 <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--gold)' }}>注意事项</h4>
-                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{data.cultureCheck.notes}</p>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{data.cultureCheck?.notes || ''}</p>
               </div>
 
               <div className="card">
                 <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--gold)' }}>优化建议</h4>
-                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{data.cultureCheck.suggestions}</p>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{data.cultureCheck?.suggestions || ''}</p>
               </div>
 
-              {data.cultureCheck.disclaimer && (
+              {data.cultureCheck?.disclaimer && (
                 <div className="card" style={{ borderLeft: '3px solid var(--warning)' }}>
                   <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--warning)' }}>免责声明</h4>
                   <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{data.cultureCheck.disclaimer}</p>
