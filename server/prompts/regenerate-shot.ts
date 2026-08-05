@@ -61,11 +61,12 @@ ${instruction ? `## 用户修改要求\n${instruction}\n` : ''}
 1. 只返回一个完整的镜头 JSON 对象，不要返回数组。
 2. 不要使用 Markdown 代码围栏，不添加任何解释文字。
 3. 必须考虑与前后镜头的视觉衔接（首帧应与前一镜头尾帧有过渡感，尾帧应与后一镜头首帧有衔接感）。
-4. 必须填写以下 7 个分镜细节字段，从枚举值中选择最合适的值：
+4. 所有提示词必须使用**全中文**编写。提示词末尾必须追加质量后缀（图像：，高清细节，画面稳定，光影层次丰富；视频：，运镜稳定流畅，画面无闪烁无变形，动作自然连贯）。必须填写 negativePrompt 字段。
+5. 必须填写以下 7 个分镜细节字段，从枚举值中选择最合适的值：
 ${SHOT_DETAIL_ENUMS}
    - transition 应与前一镜头的 transition 协调（前一镜头的转场方式决定进入本镜头的视觉过渡）。
    - 提示词（firstFramePrompt/lastFramePrompt/videoPrompt）中应体现这些技术参数。
-5. 按照以下模板结构输出：
+6. 按照以下模板结构输出：
 
 {
   "id": "shot-${shotIndex + 1}",
@@ -81,9 +82,10 @@ ${SHOT_DETAIL_ENUMS}
   "speed": "速度/帧率",
   "mood": "情绪氛围",
   "transition": "转场方式",
-  "firstFramePrompt": "首帧画面提示词（适合 AI 图像生成）",
-  "lastFramePrompt": "尾帧画面提示词（适合 AI 图像生成）",
-  "videoPrompt": "视频生成提示词（适合 AI 视频生成）",
+  "firstFramePrompt": "首帧画面提示词（全中文，适合 AI 图像生成，末尾追加质量后缀：，高清细节，画面稳定，光影层次丰富）",
+  "lastFramePrompt": "尾帧画面提示词（全中文，适合 AI 图像生成，末尾追加质量后缀）",
+  "videoPrompt": "视频生成提示词（全中文，适合 AI 视频生成，末尾追加质量后缀：，运镜稳定流畅，画面无闪烁无变形，动作自然连贯）",
+  "negativePrompt": "负面提示词（全中文，至少包含：模糊，变形，多余手指，文字水印，低画质，过度饱和，面部扭曲，肢体畸形）",
   "generatabilityScore": 85,
   "generatabilityChecks": [
     { "label": "主体明确", "status": "pass", "detail": "..." },

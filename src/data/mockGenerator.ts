@@ -107,9 +107,10 @@ export function generateMockProjectData(params: GenerateParams): ProjectData {
       camera: cameras[i % cameras.length],
       duration: `${5 + (i % 4)}秒`,
       description: descriptions[i] || `${heritageType}短片镜头 ${i + 1}，展现非遗技艺的传承之美。`,
-      firstFramePrompt: `${style}风格，${heritageType}主题，首帧画面：${descriptions[i]} 光线柔和，色彩温润，电影级画面质量。`,
-      lastFramePrompt: `${style}风格，${heritageType}主题，尾帧画面：${descriptions[i]} 画面有轻微动态过渡，保持视觉连贯性。`,
-      videoPrompt: `${style}风格 ${heritageType}短片镜头，${descriptions[i]} 运镜：${cameras[i % cameras.length]}，景别：${shotSizes[i % shotSizes.length]}，时长${5 + (i % 4)}秒，光线柔和，色彩温润，电影级画面。`,
+      firstFramePrompt: `${style}风格，${heritageType}主题，首帧画面：${descriptions[i]} 光线柔和，色彩温润，电影级画面质量，高清细节，画面稳定，光影层次丰富`,
+      lastFramePrompt: `${style}风格，${heritageType}主题，尾帧画面：${descriptions[i]} 画面有轻微动态过渡，保持视觉连贯性，高清细节，画面稳定，光影层次丰富`,
+      videoPrompt: `${style}风格 ${heritageType}短片镜头，${descriptions[i]} 运镜：${cameras[i % cameras.length]}，景别：${shotSizes[i % shotSizes.length]}，时长${5 + (i % 4)}秒，光线柔和，色彩温润，电影级画面，运镜稳定流畅，画面无闪烁无变形，动作自然连贯`,
+      negativePrompt: '模糊，变形，多余手指，文字水印，低画质，过度饱和，面部扭曲，肢体畸形',
       generatabilityScore: 75 + (i % 6) * 3,
       generatabilityChecks: [
         { label: '主体明确', status: 'pass' as const, detail: '主体清晰可辨' },

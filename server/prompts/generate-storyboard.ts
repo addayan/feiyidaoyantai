@@ -60,9 +60,10 @@ const JSON_SCHEMA_TEMPLATE = `{
       "speed": "速度/帧率",
       "mood": "情绪氛围",
       "transition": "转场方式（该镜头结束后的转场）",
-      "firstFramePrompt": "首帧画面提示词（适合 AI 图像生成，100-200字英文/中文混合，描述画面构图、人物、光影、色彩、风格）",
-      "lastFramePrompt": "尾帧画面提示词（适合 AI 图像生成，描述镜头结束时的画面，需与首帧有连贯性）",
-      "videoPrompt": "视频生成提示词（适合 AI 视频生成，描述运镜、动态、时间变化，200-300字）",
+      "firstFramePrompt": "首帧画面提示词（全中文，100-200字，描述画面构图、人物、光影、色彩、风格，末尾追加质量词）",
+      "lastFramePrompt": "尾帧画面提示词（全中文，描述镜头结束时的画面，需与首帧有连贯性，末尾追加质量词）",
+      "videoPrompt": "视频生成提示词（全中文，描述运镜、动态、时间变化，200-300字，末尾追加质量词）",
+      "negativePrompt": "负面提示词（全中文，列出需要排除的内容，如：模糊，变形，多余手指，文字水印，低画质，过度饱和，面部扭曲，肢体畸形）",
       "generatabilityScore": 85,
       "generatabilityChecks": [
         { "label": "主体明确", "status": "pass", "detail": "主体清晰可辨" },
@@ -132,17 +133,20 @@ export function buildGeneratePrompt(request: GenerateRequest, safetyRules: strin
 ### 内容要求
 1. **镜头数量**：严格生成 8 个镜头（shots 数组长度必须为 8）。
 2. **总时长**：8 个镜头的时长之和应与用户选择的"${request.duration}"匹配。
-3. **每个镜头**必须包含完整的 id、scene、shotSize、camera、duration、description、firstFramePrompt、lastFramePrompt、videoPrompt、generatabilityScore、generatabilityChecks。
+3. **每个镜头**必须包含完整的 id、scene、shotSize、camera、duration、description、firstFramePrompt、lastFramePrompt、videoPrompt、negativePrompt、generatabilityScore、generatabilityChecks。
 4. **分镜细节字段**（V2.1.0 新增，每个镜头必须填写）：
    每个镜头除了基本字段外，还必须包含以下 7 个专业维度，从枚举值中选择最合适的值：
 ${SHOT_DETAIL_ENUMS}
    - 这些字段应与镜头的 shotSize、camera、description 协调一致。
    - transition 表示该镜头结束后的转场方式，最后一个镜头的 transition 建议使用"淡入淡出"或"黑场"收尾。
 5. **提示词质量**：
-   - firstFramePrompt 和 lastFramePrompt 必须适合真实的 AI 图像生成（Seedream/SDXL/Midjourney），需描述构图、光影、色彩、人物姿态、细节纹理。
+   - 所有提示词必须使用**全中文**编写（适配 Seedance 2.0 / Seedream 等国产 AI 生成模型）。
+   - firstFramePrompt 和 lastFramePrompt 必须适合真实的 AI 图像生成（Seedream），需描述构图、光影、色彩、人物姿态、细节纹理。
    - 提示词中应体现该镜头的 composition、lighting、cameraAngle、depthOfField 等技术参数。
-   - videoPrompt 必须适合真实的 AI 视频生成（Seedance/Kling/Sora），需描述运镜、动态变化、时间流逝，并体现 speed 和 mood。
-   - 提示词可混合中英文，但画面描述部分建议用英文或中英混合以提高 AI 生成质量。
+   - **图像提示词末尾必须追加质量后缀**：，高清细节，画面稳定，光影层次丰富
+   - videoPrompt 必须适合真实的 AI 视频生成（Seedance），需描述运镜、动态变化、时间流逝，并体现 speed 和 mood。
+   - **视频提示词末尾必须追加质量后缀**：，运镜稳定流畅，画面无闪烁无变形，动作自然连贯
+   - **negativePrompt 必须填写**，列出该镜头需要排除的内容，至少包含：模糊，变形，多余手指，文字水印，低画质，过度饱和，面部扭曲，肢体畸形，可根据镜头特点追加额外排除项。
 6. **文化表达检查**（cultureCheck）必须完整，包含 overallScore、items 数组、notes、suggestions、disclaimer。
 7. **参赛说明**（submissionNote）必须包含全部 8 个字段。
 8. **发布文案**（socialPosts）必须包含 douyin 和 xiaohongshu 两个平台文案。

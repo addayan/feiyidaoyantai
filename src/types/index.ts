@@ -129,6 +129,8 @@ export interface Shot {
   firstFramePrompt: string;
   lastFramePrompt: string;
   videoPrompt: string;
+  // V2.2.1 新增：负面提示词（用于 AI 图像/视频生成时排除不想要的内容）
+  negativePrompt?: string;
   generatabilityScore: number;
   generatabilityChecks: GeneratabilityCheck[];
 }

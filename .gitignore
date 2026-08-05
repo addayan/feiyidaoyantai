@@ -4,3 +4,6 @@ dist-server
 .env
 *.local
 *.zip
+.wrangler/
+tsconfig.tsbuildinfo
+*.lnk

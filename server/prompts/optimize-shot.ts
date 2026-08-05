@@ -65,11 +65,12 @@ ${customInstruction ? `\n## 用户自定义要求\n${customInstruction}\n` : ''}
 ## 输出要求
 1. 只返回一个完整的镜头 JSON 对象，不要返回数组。
 2. 不要使用 Markdown 代码围栏，不添加任何解释文字。
-3. 优化后的镜头需保持与原镜头相同的 id、scene、shotSize。
-4. 保留或优化以下 7 个分镜细节字段（从枚举值中选择最合适的值）：
+3. 所有提示词必须使用**全中文**编写。图像提示词末尾追加，高清细节，画面稳定，光影层次丰富；视频提示词末尾追加，运镜稳定流畅，画面无闪烁无变形，动作自然连贯。必须填写 negativePrompt 字段。
+4. 优化后的镜头需保持与原镜头相同的 id、scene、shotSize。
+5. 保留或优化以下 7 个分镜细节字段（从枚举值中选择最合适的值）：
 ${SHOT_DETAIL_ENUMS}
    - 优化时可根据优化方向调整这些参数（如"增强电影感"时可改为更有电影质感的构图和光效）。
-5. 按照以下模板输出：
+6. 按照以下模板输出：
 
 {
   "id": "shot-${shotIndex + 1}",
@@ -85,9 +86,10 @@ ${SHOT_DETAIL_ENUMS}
   "speed": "速度/帧率",
   "mood": "情绪氛围",
   "transition": "转场方式",
-  "firstFramePrompt": "优化后的首帧提示词",
-  "lastFramePrompt": "优化后的尾帧提示词",
-  "videoPrompt": "优化后的视频提示词",
+  "firstFramePrompt": "优化后的首帧提示词（全中文，末尾追加：，高清细节，画面稳定，光影层次丰富）",
+  "lastFramePrompt": "优化后的尾帧提示词（全中文，末尾追加质量后缀）",
+  "videoPrompt": "优化后的视频提示词（全中文，末尾追加：，运镜稳定流畅，画面无闪烁无变形，动作自然连贯）",
+  "negativePrompt": "负面提示词（全中文，至少包含：模糊，变形，多余手指，文字水印，低画质，过度饱和，面部扭曲，肢体畸形）",
   "generatabilityScore": 85,
   "generatabilityChecks": [
     { "label": "主体明确", "status": "pass", "detail": "..." },

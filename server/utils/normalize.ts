@@ -364,7 +364,7 @@ function normalizeShots(shots: any[], request: GenerateRequest, scenes: any[]): 
   const requiredFields = [
     'id', 'scene', 'shotSize', 'camera', 'duration',
     'description', 'firstFramePrompt', 'lastFramePrompt', 'videoPrompt',
-    'generatabilityScore', 'generatabilityChecks',
+    'negativePrompt', 'generatabilityScore', 'generatabilityChecks',
   ];
 
   // 处理已有镜头
@@ -415,9 +415,10 @@ function getDefaultShotField(field: string, request: GenerateRequest, index: num
     camera: '固定',
     duration: '5秒',
     description: `${request.heritageType}短片镜头 ${index + 1}，展现非遗技艺的传承之美。`,
-    firstFramePrompt: `${request.style}风格，${request.heritageType}主题，镜头${index + 1}首帧画面。光线柔和，色彩温润，电影级画面质量。`,
-    lastFramePrompt: `${request.style}风格，${request.heritageType}主题，镜头${index + 1}尾帧画面。画面有轻微动态过渡，保持视觉连贯性。`,
-    videoPrompt: `${request.style}风格 ${request.heritageType}短片镜头${index + 1}，固定镜头，中景，5秒，光线柔和，色彩温润，电影级画面。`,
+    firstFramePrompt: `${request.style}风格，${request.heritageType}主题，镜头${index + 1}首帧画面。光线柔和，色彩温润，电影级画面质量，高清细节，画面稳定，光影层次丰富`,
+    lastFramePrompt: `${request.style}风格，${request.heritageType}主题，镜头${index + 1}尾帧画面。画面有轻微动态过渡，保持视觉连贯性，高清细节，画面稳定，光影层次丰富`,
+    videoPrompt: `${request.style}风格 ${request.heritageType}短片镜头${index + 1}，固定镜头，中景，5秒，光线柔和，色彩温润，电影级画面，运镜稳定流畅，画面无闪烁无变形，动作自然连贯`,
+    negativePrompt: '模糊，变形，多余手指，文字水印，低画质，过度饱和，面部扭曲，肢体畸形',
     generatabilityScore: 70,
     generatabilityChecks: [
       { label: '主体明确', status: 'pass', detail: '主体清晰可辨' },
@@ -443,9 +444,10 @@ function createDefaultShot(request: GenerateRequest, index: number, scenes: any[
     speed: '正常速度',
     mood: index < 4 ? '庄重' : '温馨',
     transition: index === 7 ? '淡入淡出' : '硬切',
-    firstFramePrompt: `${request.style}风格，${request.heritageType}主题，${sceneName}场景。一位专注的${request.heritageType}手艺人正在进行传统工序，光线柔和，色彩温润，电影级画面质量。`,
-    lastFramePrompt: `${request.style}风格，${request.heritageType}主题，${sceneName}场景。手艺人完成了一道工序，神情满足，光线温暖，电影级画面。`,
-    videoPrompt: `${request.style}风格 ${request.heritageType}短片，${sceneName}场景，固定镜头，中景，5秒，手艺人专注进行传统工序，光线柔和，色彩温润，电影级画面。`,
+    firstFramePrompt: `${request.style}风格，${request.heritageType}主题，${sceneName}场景。一位专注的${request.heritageType}手艺人正在进行传统工序，光线柔和，色彩温润，电影级画面质量，高清细节，画面稳定，光影层次丰富`,
+    lastFramePrompt: `${request.style}风格，${request.heritageType}主题，${sceneName}场景。手艺人完成了一道工序，神情满足，光线温暖，电影级画面，高清细节，画面稳定，光影层次丰富`,
+    videoPrompt: `${request.style}风格 ${request.heritageType}短片，${sceneName}场景，固定镜头，中景，5秒，手艺人专注进行传统工序，光线柔和，色彩温润，电影级画面，运镜稳定流畅，画面无闪烁无变形，动作自然连贯`,
+    negativePrompt: '模糊，变形，多余手指，文字水印，低画质，过度饱和，面部扭曲，肢体畸形',
     generatabilityScore: 70,
     generatabilityChecks: [
       { label: '主体明确', status: 'pass', detail: '主体清晰可辨' },
