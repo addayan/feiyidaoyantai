@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "feiyi",
+  "project_id": "e7084731-1686-4e0a-a438-27664b5cb47c"
+}
