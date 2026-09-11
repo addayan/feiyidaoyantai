@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 
 const NAV_ITEMS = [
   { path: '/', label: '首页' },
+  { path: '/heritage', label: '了解非遗' },
   { path: '/create', label: '开始创作' },
   { path: '/cases', label: '案例库' },
   { path: '/my-projects', label: '我的项目' },
@@ -53,12 +54,12 @@ export default function Navbar() {
           </span>
           <span style={{
             fontSize: 11,
-            color: 'var(--text-muted)',
-            border: '1px solid var(--border)',
+            color: 'var(--gold)',
+            border: '1px solid rgba(212,168,83,.3)',
             borderRadius: 4,
             padding: '1px 6px',
           }}>
-            V2.2 BY 阿岩
+            V3.0 BETA
           </span>
         </Link>
 
@@ -68,25 +69,13 @@ export default function Navbar() {
               key={item.path}
               to={item.path}
               style={{
-                padding: '8px 16px',
+                padding: '8px 13px',
                 borderRadius: 'var(--radius-sm)',
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: isActive(item.path) ? 600 : 400,
                 color: isActive(item.path) ? 'var(--gold)' : 'var(--text-secondary)',
                 background: isActive(item.path) ? 'var(--gold-dim)' : 'transparent',
                 transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => {
-                if (!isActive(item.path)) {
-                  (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
-                }
-              }}
-              onMouseLeave={e => {
-                if (!isActive(item.path)) {
-                  (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
-                  (e.currentTarget as HTMLElement).style.background = 'transparent';
-                }
               }}
             >
               {item.label}

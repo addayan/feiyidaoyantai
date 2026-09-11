@@ -4,7 +4,10 @@ import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import Home from './pages/Home';
 import Create from './pages/Create';
+import CreateV3 from './pages/CreateV3';
 import Director from './pages/Director';
+import HeritageLibrary from './pages/HeritageLibrary';
+import HeritageDetail from './pages/HeritageDetail';
 import Cases from './pages/Cases';
 import MyProjects from './pages/MyProjects';
 import TechRoadmap from './pages/TechRoadmap';
@@ -18,7 +21,10 @@ export default function App() {
         <main style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/create" element={<Create />} />
+            <Route path="/heritage" element={<HeritageLibrary />} />
+            <Route path="/heritage/:slug" element={<HeritageDetail />} />
+            <Route path="/create" element={<CreateV3 />} />
+            <Route path="/create-classic" element={<Create />} />
             <Route path="/director/:projectId" element={<Director />} />
             <Route path="/cases" element={<Cases />} />
             <Route path="/my-projects" element={<MyProjects />} />
