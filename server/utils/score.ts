@@ -28,7 +28,7 @@ export function calculateGeneratabilityScore(shot: any): ScoreResult {
 
   // --- 1. 主体数量评估 ---
   // 统计提示词中提到的主体数量（简单启发式：统计主要名词短语）
-  const subjectIndicators = ['人物', '角色', '主体', '对象', '人物', '老人', '年轻人', '女孩', '男孩', '手艺人', '师傅', '老人', '师傅', '少女', '小孩'];
+  const subjectIndicators = ['人物', '角色', '主体', '对象', '老人', '年轻人', '女孩', '男孩', '手艺人', '师傅', '少女', '小孩']; // 去重：原列表含重复项导致重复计数
   let subjectCount = 0;
   for (const indicator of subjectIndicators) {
     const regex = new RegExp(indicator, 'g');
@@ -53,7 +53,7 @@ export function calculateGeneratabilityScore(shot: any): ScoreResult {
   }
 
   // --- 2. 人物数量 ---
-  const personIndicators = ['人', '女子', '男子', '老', '少女', '少年', '孩子', '老人', '年轻人', '女孩', '男孩', '手艺人', '艺人', '师傅'];
+  const personIndicators = ['人', '女子', '男子', '老', '少女', '少年', '孩子', '老人', '年轻人', '女孩', '男孩', '手艺人', '艺人', '师傅']; // 已确认无重复
   let personCount = 0;
   for (const ind of personIndicators) {
     const regex = new RegExp(ind, 'g');
@@ -74,7 +74,7 @@ export function calculateGeneratabilityScore(shot: any): ScoreResult {
   }
 
   // --- 3. 动作数量 ---
-  const actionIndicators = ['走', '跑', '跳', '转身', '抬头', '低头', '挥手', '拿', '放', '抬', '握', '转动', '操作', '编织', '刺绣', '雕刻', '切割', '舞动', '奔跑', '飞舞', '抛', '接', '敲', '打', '雕刻', '剪', '雕刻', '绘制', '拿起', '放下', '注视', '环顾', '抚摸', '拉', '推', '转身'];
+  const actionIndicators = ['走', '跑', '跳', '转身', '抬头', '低头', '挥手', '拿', '放', '抬', '握', '转动', '操作', '编织', '刺绣', '雕刻', '切割', '舞动', '奔跑', '飞舞', '抛', '接', '敲', '打', '剪', '绘制', '拿起', '放下', '注视', '环顾', '抚摸', '拉', '推']; // 去重：原列表 '雕刻'×3、'转身'×2 导致同一动作被重复计数
   let actionCount = 0;
   for (const ind of actionIndicators) {
     const regex = new RegExp(ind, 'g');
@@ -137,7 +137,7 @@ export function calculateGeneratabilityScore(shot: any): ScoreResult {
   }
 
   // --- 7. 冲突动作 ---
-  const conflictActions = ['一边...一边', '同时', '又...又', '一边...一边', '边...边'];
+  const conflictActions = ['一边', '同时', '又...又', '边...边']; // 去重并将 '一边...一边' 收敛为 '一边'，可命中真实文本
   const hasConflict = conflictActions.some(pattern => allPrompts.includes(pattern));
   if (hasConflict) {
     totalScore -= 12;

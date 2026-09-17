@@ -10,10 +10,10 @@
 
 ### 新增功能
 
-- **在线零配置使用**：基于 Cloudflare Pages + Workers 部署，直接访问在线地址即可体验，无需配置任何环境
+- **在线零配置使用**：基于 Cloudflare Pages + Pages Functions 部署，直接访问在线地址即可体验，无需配置任何环境
 - **项目导入导出**：支持以 JSON 格式导入导出项目，方便备份与跨设备迁移
 - **错误边界保护**：引入 ErrorBoundary，避免局部异常导致整个应用白屏崩溃
-- **真实 AI 文本生成**：接入 agnes-2.0-flash 大模型，实现真实 AI 驱动的分镜方案生成
+- **真实 AI 文本生成**：接入 OpenAI 兼容大模型（环境变量可配），实现真实 AI 驱动的分镜方案生成
 - **AI 配置检测**：前端自动检测后端 AI 模型配置状态，动态启用/禁用 AI 功能按钮
 - **单模块重新生成**：支持对故事、角色、场景、声音设计、参赛说明、发布文案等模块单独重新生成
 - **单镜头重新生成**：支持对单个镜头进行 AI 重新生成，自动考虑前后镜头衔接
@@ -26,19 +26,19 @@
 ### 明确说明
 
 - **快速体验无需 API**：快速体验模式使用本地 mock 数据，无需配置任何 API Key
-- **AI 真实生成需要本地 .env**：AI 模式需要在项目根目录创建 `.env` 文件配置 API Key（在线版已由 Cloudflare Worker 代理，无需自行配置）
+- **AI 真实生成需要本地 .env**：AI 模式需要在项目根目录创建 `.env` 文件配置 API Key（在线版已由 Cloudflare Pages Functions 代理，无需自行配置）
 - **Seedream 和 Seedance 尚未真实调用**：当前版本仅使用文本大模型生成方案，图像/视频生成 API 尚未接入
-- **API Key 不进入前端和 Git**：API Key 仅存在于后端 `.env` 文件或 Cloudflare Worker 环境变量中，已加入 `.gitignore`
+- **API Key 不进入前端和 Git**：API Key 仅存在于本地 `.env` 文件或 Cloudflare Pages 环境变量中，已加入 `.gitignore`
 
 ## 技术栈
 
-- **前端**：React 18 + TypeScript + Vite 6 + React Router v6
-- **后端**：Express 4 + Node.js（代理 AI API 请求）
-- **AI 模型**：agnes-2.0-flash
+- **前端**：React 18 + TypeScript + Vite 6 + React Router v6（BrowserRouter）
+- **后端**：Cloudflare Pages Functions（线上，/api/* 同源部署）；Express 4 + Node.js（本地开发）
+- **AI 模型**：OpenAI 兼容 Chat API，通过环境变量 ARK_MODEL_ID / ARK_BASE_URL 配置（默认火山方舟，可切换 DeepSeek 等）
 - **状态管理**：localStorage 本地持久化
 - **UI 样式**：CSS 变量 + 自定义主题（深蓝黑底 + 金/青点缀）
-- **部署**：Cloudflare Pages（前端）+ Cloudflare Workers（API 代理）
-- **API 安全**：API Key 存储在 Cloudflare Worker 环境变量中，前端不接触任何密钥
+- **部署**：Cloudflare Pages（前端 + Functions 同源部署，无需独立后端）
+- **API 安全**：API Key 仅存于 Cloudflare Pages 环境变量（或本地 .env），前端不接触任何密钥
 
 ## 本地运行
 
@@ -59,8 +59,8 @@ npm run dev
 
 ```
 ARK_API_KEY=your-api-key
-ARK_MODEL_ID=agnes-2.0-flash
-ARK_BASE_URL=https://apihub.agnes-ai.com/v1
+ARK_MODEL_ID=your-model-id
+ARK_BASE_URL=https://ark.cn-beijing.volces.com/api/v3
 ARK_TIMEOUT_MS=120000
 ```
 
@@ -79,7 +79,7 @@ npm run dev:all
 npm run build
 ```
 
-构建产物输出到 `dist/` 目录。可直接双击 `dist/index.html` 打开。
+构建产物输出到 `dist/` 目录。注意：项目使用 BrowserRouter，深层路径（如 `/director/xxx`）需要服务器回退到 index.html（线上已通过 `public/_redirects` 配置 `/* /index.html 200`）；直接用 `file://` 双击打开仅能访问首页，深层路径直达/刷新不可用。
 
 ## API 接口
 
@@ -94,7 +94,7 @@ npm run build
 
 ## API Key 安全说明
 
-- 所有 API Key 仅通过 `.env` 文件或 Cloudflare Worker 环境变量管理
+- 所有 API Key 仅通过本地 `.env` 文件或 Cloudflare Pages 环境变量管理
 - `.env` 已加入 `.gitignore`，不会提交到 Git
 - `.env.example` 仅包含占位符值
 - 前端代码中绝不暴露任何 Key

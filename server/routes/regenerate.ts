@@ -2,7 +2,6 @@
 
 import { Router, Request, Response } from 'express';
 import { isModelConfigured, getSafeModelId } from '../config';
-import type { AIError } from '../types';
 import { safeJSONParse } from '../utils/json';
 import { calculateGeneratabilityScore } from '../utils/score';
 import { buildSafetyRules } from '../utils/safety';

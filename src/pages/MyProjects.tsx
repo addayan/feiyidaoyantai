@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import EmptyState from '../components/EmptyState';
 import { getAllProjects, deleteProject, renameProject, createProject } from '../store/projectStore';
 import type { Project } from '../types';
@@ -46,7 +46,7 @@ export default function MyProjects() {
         showToast(`项目「${newProject.data.title}」导入成功`);
         refresh();
         setTimeout(() => navigate('/director/' + newProject.id), 800);
-      } catch (err) {
+      } catch {
         showToast('导入失败：JSON 解析错误');
       }
     };

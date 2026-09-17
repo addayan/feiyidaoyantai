@@ -1,10 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  HERITAGE_CATALOG,
-  OFFICIAL_CATEGORIES,
-  searchHeritage,
-} from '../data/heritageCatalog';
+import { OFFICIAL_CATEGORIES, searchHeritage } from '../data/heritageCatalog';
 
 export default function HeritageLibrary() {
   const [query, setQuery] = useState('');

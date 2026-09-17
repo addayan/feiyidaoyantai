@@ -22,11 +22,11 @@ export function extractJSON(text: string): string {
   const startBracket = cleaned.indexOf('[');
 
   // 确定起始位置
-  let start = -1;
-  let endChar = '';
   if (startBrace === -1 && startBracket === -1) {
     return cleaned;
   }
+  let start: number;
+  let endChar: string;
   if (startBrace === -1) {
     start = startBracket;
     endChar = ']';

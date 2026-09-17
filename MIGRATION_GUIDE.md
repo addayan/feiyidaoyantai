@@ -86,11 +86,9 @@ npm run build
 npx wrangler pages deploy dist --project-name=feiyi --branch=main
 ```
 
-### 部署 Worker（更新 AI 代理）
+### API 代理（已内置，无需单独部署）
 
-```bash
-npx wrangler deploy worker/feiyi-ai-worker.js --name feiyi-ai-api
-```
+线上 API 由 `functions/`（Cloudflare Pages Functions）提供，`npx wrangler pages deploy dist` 时会自动带上 `/api/*` 路由，无需单独部署 Worker。
 
 ### Cloudflare 账号信息
 
@@ -98,7 +96,7 @@ npx wrangler deploy worker/feiyi-ai-worker.js --name feiyi-ai-api
 |------|-----|
 | Account ID | d47a86113683cf607f4ad2044c8b5027 |
 | Pages 项目名 | feiyi |
-| Worker 名称 | feiyi-ai-api |
+
 | 自定义域名 | feiyi.hao1234.top |
 
 ## 七、项目结构
@@ -115,8 +113,8 @@ feiyidaoyantai/
 │   ├── types/             # TypeScript 类型定义
 │   └── utils/             # 工具函数
 ├── server/                # 本地后端（Express）
-├── worker/                # Cloudflare Worker 代码
-├── functions/             # Cloudflare Pages Functions（备用）
+
+├── functions/             # Cloudflare Pages Functions（线上 API 代理）
 ├── public/                # 静态文件
 ├── release/               # 版本发布文件
 ├── index.html             # 入口 HTML
@@ -127,7 +125,7 @@ feiyidaoyantai/
 
 ## 八、关键注意事项
 
-1. **API Key 安全**：API Key 只能存在于 `.env` 文件或 Cloudflare Worker 环境变量中，绝不提交到 Git
+1. **API Key 安全**：API Key 只能存在于本地 `.env` 文件或 Cloudflare Pages 环境变量中，绝不提交到 Git
 2. **`.gitignore` 已配置**：`.env`、`node_modules`、`dist`、`.wrangler` 均被忽略
 3. **线上地址**：https://feiyi.hao1234.top/ （始终可用）
 4. **GitHub 仓库**：https://github.com/addayan/feiyidaoyantai
@@ -138,10 +136,10 @@ feiyidaoyantai/
 A: 先运行 `npm install` 安装依赖。
 
 ### Q: AI 生成不工作？
-A: 本地开发需要在 `.env` 文件中配置 API Key；线上已由 Cloudflare Worker 代理，无需配置。
+A: 本地开发需要在 `.env` 文件中配置 API Key；线上已由 Cloudflare Pages Functions 代理，无需配置。
 
 ### Q: 如何更新线上版本？
 A: `npm run build` → `npx wrangler pages deploy dist --project-name=feiyi --branch=main`
 
-### Q: 如何更新 Worker 代码？
-A: 修改 `worker/feiyi-ai-worker.js` → `npx wrangler deploy worker/feiyi-ai-worker.js --name feiyi-ai-api`
+### Q: 如何更新线上 API？
+A: 修改 `functions/` 下的端点源码，重新 `npx wrangler pages deploy dist --project-name=feiyi --branch=main` 即可，API 随 Pages 一起发布。

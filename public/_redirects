@@ -1,0 +1,3 @@
+# Cloudflare Pages SPA 回退：深层路径刷新/直达返回 index.html
+# 注意：/api/* 由 Pages Functions 处理，优先级高于此规则
+/* /index.html 200

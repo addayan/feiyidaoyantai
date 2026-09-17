@@ -58,7 +58,7 @@ function ParticlesCanvas() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let particles: Array<{
+    const particles: Array<{
       x: number; y: number; size: number;
       speedX: number; speedY: number;
       opacity: number; hue: number;

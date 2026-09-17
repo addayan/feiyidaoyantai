@@ -1,7 +1,7 @@
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { DIRECTOR_SECTIONS, type DirectorSection, type Project } from '../types';
-import type { GenerationRecord, Composition, Lighting, CameraAngle, DepthOfField, Speed, Mood, Transition } from '../types';
+import { type DirectorSection, type Project } from '../types';
+import type { GenerationRecord } from '../types';
 import { getProject, updateProject, createProject, addGenerationRecord as storeAddGenerationRecord } from '../store/projectStore';
 import { getExampleProject } from '../data/examples';
 import { DIRECTOR_STYLE_PRESETS } from '../data/directorStyles';
@@ -20,144 +20,12 @@ import {
 import {
   SortableContext,
   verticalListSortingStrategy,
-  useSortable,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-
-// ===== 分镜细节字段枚举值（V2.1.0 第二层）=====
-const DETAIL_OPTIONS = {
-  composition: ['三分法', '中心构图', '对称构图', '引导线构图', '框架构图', '对角线构图', '留白构图', '黄金分割', '层次构图', '其他'] as Composition[],
-  lighting: ['自然光', '逆光', '侧光', '顶光', '底光', '柔光', '硬光', '伦勃朗光', '轮廓光', '散射光', '暖光', '冷光'] as Lighting[],
-  cameraAngle: ['平视', '俯视', '仰视', '鸟瞰', '倾斜', '低角度', '过肩'] as CameraAngle[],
-  depthOfField: ['浅景深', '深景深', '焦点转移', '区域对焦', '全景深'] as DepthOfField[],
-  speed: ['正常速度', '慢动作', '快动作', '定格', '延时'] as Speed[],
-  mood: ['庄重', '温馨', '紧张', '神秘', '激昂', '宁静', '欢快', '哀伤', '怀旧', '期待', '震撼', '平和'] as Mood[],
-  transition: ['硬切', '淡入淡出', '叠化', '划像', '遮罩转场', '匹配剪辑', '跳切', '黑场', '白场'] as Transition[],
-};
-
-const DETAIL_META: Record<string, { icon: string; label: string; color: string; bg: string }> = {
-  composition: { icon: '🎨', label: '构图', color: '#a78bfa', bg: 'rgba(139,92,246,0.12)' },
-  lighting: { icon: '💡', label: '光效', color: '#fbbf24', bg: 'rgba(251,191,36,0.12)' },
-  cameraAngle: { icon: '📐', label: '角度', color: '#38bdf8', bg: 'rgba(56,189,248,0.12)' },
-  depthOfField: { icon: '🔍', label: '景深', color: '#c084fc', bg: 'rgba(168,85,247,0.12)' },
-  speed: { icon: '⚡', label: '速度', color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
-  mood: { icon: '🎭', label: '情绪', color: '#f472b6', bg: 'rgba(244,114,182,0.12)' },
-  transition: { icon: '🔀', label: '转场', color: '#94a3b8', bg: 'rgba(148,163,184,0.12)' },
-};
-
-// ===== 前端镜头细节补齐（V2.2.0 新增，与后端 fillMissingShotDetails 保持一致）=====
-function fillMissingShotDetailsClient(shot: any, index: number, totalShots: number): void {
-  if (!shot.composition) {
-    const map: Record<string, string> = { '特写': '中心构图', '近景': '中心构图', '中景': '三分法', '中近景': '三分法', '全景': '层次构图', '远景': '引导线构图', '大远景': '黄金分割' };
-    shot.composition = map[shot.shotSize] || '三分法';
-  }
-  if (!shot.lighting) {
-    const d = String(shot.description || '');
-    if (/黄昏|夕阳|暖光|温暖/.test(d)) shot.lighting = '暖光';
-    else if (/逆光|剪影|轮廓/.test(d)) shot.lighting = '逆光';
-    else if (/室内|工坊|屋内/.test(d)) shot.lighting = '柔光';
-    else if (/室外|户外|自然/.test(d)) shot.lighting = '自然光';
-    else if (/冷|蓝|夜/.test(d)) shot.lighting = '冷光';
-    else shot.lighting = '柔光';
-  }
-  if (!shot.cameraAngle) {
-    const map: Record<string, string> = { '固定': '平视', '推': '平视', '拉': '平视', '摇': '平视', '移': '平视', '跟': '平视', '升': '仰视', '降': '俯视', '航拍': '鸟瞰', '环绕': '低角度' };
-    shot.cameraAngle = map[shot.camera] || '平视';
-  }
-  if (!shot.depthOfField) {
-    const map: Record<string, string> = { '特写': '浅景深', '近景': '浅景深', '中景': '浅景深', '中近景': '浅景深', '全景': '深景深', '远景': '深景深', '大远景': '全景深' };
-    shot.depthOfField = map[shot.shotSize] || '浅景深';
-  }
-  if (!shot.speed) {
-    const d = String(shot.description || '');
-    if (/慢|缓|凝/.test(d)) shot.speed = '慢动作';
-    else if (/快|疾|飞/.test(d)) shot.speed = '快动作';
-    else if (/定格|静止/.test(d)) shot.speed = '定格';
-    else shot.speed = '正常速度';
-  }
-  if (!shot.mood) {
-    const d = String(shot.description || '');
-    if (/庄|肃|敬/.test(d)) shot.mood = '庄重';
-    else if (/温|暖|柔/.test(d)) shot.mood = '温馨';
-    else if (/紧|急|险/.test(d)) shot.mood = '紧张';
-    else if (/神|秘|幽/.test(d)) shot.mood = '神秘';
-    else if (/宁|静|安/.test(d)) shot.mood = '宁静';
-    else if (/怀|旧|忆/.test(d)) shot.mood = '怀旧';
-    else if (index >= totalShots - 2) shot.mood = '期待';
-    else shot.mood = '庄重';
-  }
-  if (!shot.transition) {
-    shot.transition = (index === totalShots - 1) ? '淡入淡出' : '硬切';
-  }
-}
-
-// ===== 可拖拽镜头卡片包装组件（V2.1.0 导演台体验优化）=====
-function SortableItem({ id, children }: { id: string; children: React.ReactNode }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    position: 'relative',
-  };
-
-  return (
-    <div ref={setNodeRef} style={style}>
-      {/* 拖拽手柄 - 绝对定位在卡片右上角 */}
-      <div
-        {...attributes}
-        {...listeners}
-        style={{
-          position: 'absolute',
-          top: 12,
-          right: 12,
-          cursor: 'grab',
-          zIndex: 10,
-          padding: 4,
-          borderRadius: 4,
-          color: 'var(--text-muted)',
-          opacity: 0.3,
-          transition: 'opacity 0.15s',
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.3'; }}
-        title="拖拽排序"
-      >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-          <circle cx="4" cy="4" r="1.5" />
-          <circle cx="8" cy="4" r="1.5" />
-          <circle cx="12" cy="4" r="1.5" />
-          <circle cx="4" cy="8" r="1.5" />
-          <circle cx="8" cy="8" r="1.5" />
-          <circle cx="12" cy="8" r="1.5" />
-          <circle cx="4" cy="12" r="1.5" />
-          <circle cx="8" cy="12" r="1.5" />
-          <circle cx="12" cy="12" r="1.5" />
-        </svg>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-const SECTION_MAP: { key: DirectorSection; id: string }[] = [
-  { key: 'story', id: 'section-story' },
-  { key: 'characters', id: 'section-characters' },
-  { key: 'scenes', id: 'section-scenes' },
-  { key: 'shots', id: 'section-shots' },
-  { key: 'sound', id: 'section-sound' },
-  { key: 'culture', id: 'section-culture' },
-  { key: 'submission', id: 'section-submission' },
-  { key: 'social', id: 'section-social' },
-];
+import { DETAIL_OPTIONS, DETAIL_META, SECTION_MAP } from './director/constants';
+import { fillMissingShotDetailsClient } from './director/fillMissingShotDetails';
+import SortableItem from './director/SortableItem';
+import SidebarNav from './director/SidebarNav';
+import TopActionBar from './director/TopActionBar';
 
 export default function Director() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -191,7 +59,6 @@ export default function Director() {
   const [batchEditValue, setBatchEditValue] = useState('');
   const [showComparePanel, setShowComparePanel] = useState(false);
 
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const mainRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -421,7 +288,7 @@ export default function Director() {
     setEditingDetail(null);
   }, [data, project]);
 
-  const saveEdit = useCallback((fieldId: string, path: string[]) => {
+  const saveEdit = useCallback((_fieldId: string, path: string[]) => {
     setData((prev) => {
       if (!prev) return prev;
       const next = JSON.parse(JSON.stringify(prev));
@@ -653,7 +520,7 @@ export default function Director() {
         createProject(newProject);
         showToast(`项目「${newProject.data.title}」导入成功`);
         setTimeout(() => navigate('/director/' + newProject.id), 500);
-      } catch (err) {
+      } catch {
         showToast('导入失败：JSON 解析错误');
       }
     };
@@ -954,129 +821,30 @@ export default function Director() {
           gap: 32,
         }}
       >
-        {/* 左侧 sticky 导航 */}
-        <aside
-          style={{
-            position: 'sticky',
-            top: 'calc(var(--nav-height) + 24px)',
-            width: 'var(--sidebar-width)',
-            alignSelf: 'flex-start',
-            flexShrink: 0,
-            maxHeight: 'calc(100vh - var(--nav-height) - 48px)',
-            overflowY: 'auto',
-          }}
-        >
-          <div
-            style={{
-              padding: '16px 16px 12px',
-              borderBottom: '1px solid var(--border)',
-              marginBottom: 12,
-            }}
-          >
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
-              {isExample ? '示例案例' : '已自动保存'}
-            </div>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>
-              {data.title}
-            </h3>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.4 }}>
-              {data.tagline}
-            </p>
-          </div>
-
-          <nav>
-            {DIRECTOR_SECTIONS.map((s) => (
-              <button
-                key={s.key}
-                onClick={() => scrollToSection(SECTION_MAP.find((m) => m.key === s.key)!.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  width: '100%',
-                  padding: '9px 16px',
-                  textAlign: 'left',
-                  background: activeSection === s.key ? 'var(--gold-dim)' : 'transparent',
-                  color: activeSection === s.key ? 'var(--gold)' : 'var(--text-secondary)',
-                  borderLeft: activeSection === s.key ? '3px solid var(--gold)' : '3px solid transparent',
-                  fontSize: 13,
-                  transition: 'all 0.2s',
-                  borderRadius: '0 var(--radius-sm) var(--radius-sm) 0',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: activeSection === s.key ? 'var(--gold)' : 'var(--text-muted)',
-                    width: 22,
-                    flexShrink: 0,
-                  }}
-                >
-                  {s.num}
-                </span>
-                {s.label}
-              </button>
-            ))}
-          </nav>
-        </aside>
+        <SidebarNav
+          isExample={isExample}
+          title={data.title}
+          tagline={data.tagline}
+          activeSection={activeSection}
+          onNavigate={scrollToSection}
+        />
 
         {/* 右侧完整长页面 */}
         <main style={{ flex: 1, minWidth: 0 }}>
-          {/* 顶部信息栏 */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 32,
-              padding: '14px 20px',
-              background: 'var(--bg-card)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border)',
-              flexWrap: 'wrap',
-              gap: 12,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '4px 12px',
-                  borderRadius: 20,
-                  fontSize: 12,
-                  background: 'rgba(52, 211, 153, 0.15)',
-                  color: 'var(--success)',
-                }}
-              >
-                ✓ 生成完成
-              </span>
-              <span style={{ fontWeight: 600, fontSize: 17 }}>{data.title}</span>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <span className="tag">{data.heritageType}</span>
-                <span className="tag tag-teal">{data.style}</span>
-                <span className="tag">{data.duration}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button className="btn btn-sm btn-ghost" onClick={() => navigate('/create')}>继续创作</button>
-              <button className="btn btn-sm btn-secondary" onClick={exportMarkdown}>导出 Markdown</button>
-              <button className="btn btn-sm btn-secondary" onClick={exportProjectJSON} title="导出完整项目数据（含分镜、角色、场景）为 JSON 文件，可备份或分享">导出项目</button>
-              <button className="btn btn-sm btn-ghost" onClick={() => fileInputRef.current?.click()} title="从 JSON 文件导入项目">导入项目</button>
-              <button className="btn btn-sm btn-teal" onClick={copyAllPrompts}>复制全部提示词</button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json,application/json"
-                onChange={handleFileImport}
-                style={{ display: 'none' }}
-              />
-            </div>
-          </div>
+          <TopActionBar
+            title={data.title}
+            heritageType={data.heritageType}
+            style={data.style}
+            duration={data.duration}
+            onCreateClick={() => navigate('/create')}
+            onExportMarkdown={exportMarkdown}
+            onExportProject={exportProjectJSON}
+            onImportClick={() => fileInputRef.current?.click()}
+            onCopyAllPrompts={copyAllPrompts}
+            onFileChange={handleFileImport}
+            fileInputRef={fileInputRef}
+          />
 
-          {/* ===== 01 创意与故事 ===== */}
           <section id="section-story" className="director-section" style={{ marginBottom: 48 }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>
               <span style={{ color: 'var(--gold)', marginRight: 8 }}>01</span>创意与故事
@@ -1824,7 +1592,7 @@ export default function Director() {
                         <th style={{ textAlign: 'left', padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', fontWeight: 500 }}>参数</th>
                         {data.shots
                           .filter((s) => selectedShots.has(s.id))
-                          .map((s, idx) => (
+                          .map((s) => (
                             <th key={s.id} style={{ textAlign: 'left', padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', fontWeight: 600 }}>
                               镜头 {data.shots.findIndex((shot) => shot.id === s.id) + 1}
                             </th>

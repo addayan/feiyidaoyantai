@@ -126,7 +126,7 @@ export default function Create() {
 
   // 生成状态
   const [showOverlay, setShowOverlay] = useState(false);
-  const [generating, setGenerating] = useState(false);
+  const [, setGenerating] = useState(false); // generating 只写不读，占位跳过
   const [progress, setProgress] = useState(0);
   const [currentStage, setCurrentStage] = useState(0);
   const [done, setDone] = useState(false);
@@ -135,7 +135,7 @@ export default function Create() {
   const [completionStats, setCompletionStats] = useState<CompletionStat[] | undefined>(undefined);
 
   // AI 请求控制
-  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [, setAbortController] = useState<AbortController | null>(null); // abortController 只写不读，占位跳过
 
   // 防重复提交
   const generatingRef = useRef(false);

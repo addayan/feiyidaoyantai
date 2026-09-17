@@ -2,7 +2,7 @@
 
 ## 系统概述
 
-非遗影像工坊采用前后端分离架构，前端为纯静态 SPA 应用，后端为 Express 代理服务器。前端通过 Hash 路由支持离线双击打开，后端负责代理 AI API 请求并保护 API Key。
+非遗影像工坊采用前后端分离架构，前端为纯静态 SPA 应用。后端双实现：本地开发为 Express 代理服务器（server/），线上为 Cloudflare Pages Functions（functions/，/api/* 同源，复用 server 的 prompts/utils）。前端使用 BrowserRouter，线上通过 public/_redirects 提供 SPA 回退；后端负责代理 AI API 请求并保护 API Key。
 
 ## 架构图
 
@@ -29,7 +29,7 @@
                        │ HTTP (fetch)
                        ▼
 ┌──────────────────────────────────────────────────────────┐
-│              Express 后端 (端口 3001)                    │
+│   后端双实现：Express 3001(本地) / Pages Functions(线上) │
 │                                                          │
 │  ┌────────┐ ┌──────────┐ ┌───────────┐ ┌──────────────┐  │
 │  │ health │ │ generate │ │regenerate │ │   optimize   │  │
@@ -65,16 +65,19 @@
 
 ### 路由设计
 
-使用 React Router v6 的 Hash 路由模式（`HashRouter`），确保构建产物可通过 `file://` 协议直接打开：
+使用 React Router v6 的 BrowserRouter。线上（Cloudflare Pages）通过 `public/_redirects`（`/* /index.html 200`）提供 SPA 回退，深层路径刷新/直达可用；本地开发由 Vite dev server 处理回退。注意：`file://` 协议双击打开仅能访问首页。
 
 ```
-#/              → Home         首页
-#/create        → Create       开始创作
-#/director/:id  → Director     AI 导演台（核心页面）
-#/cases         → Cases        案例库
-#/projects      → MyProjects   我的项目
-#/roadmap       → TechRoadmap  技术路线图
-#/*             → NotFound     404 页面
+/                  → Home              首页
+/create            → CreateV3          开始创作（V3 入口）
+/create-classic    → Create            经典创作（V2.2 保留）
+/director/:id      → Director          AI 导演台（核心页面）
+/heritage          → HeritageLibrary   非遗知识库（V3）
+/heritage/:slug    → HeritageDetail    非遗详情（V3）
+/cases             → Cases             案例库
+/my-projects       → MyProjects        我的项目
+/tech-roadmap      → TechRoadmap       技术路线图
+*                  → NotFound          404 页面
 ```
 
 ### 组件层级
@@ -86,8 +89,10 @@ App.tsx
 │   ├── Home
 │   │   ├── HeroBackground（Canvas 粒子动画）
 │   │   └── CaseCard × 4（案例入口卡片）
-│   ├── Create
+│   ├── CreateV3（/create，V3 入口）
 │   │   └── GenerationOverlay（生成进度遮罩）
+│   ├── Create（/create-classic，经典入口）
+│   ├── HeritageLibrary / HeritageDetail（非遗知识库）
 │   ├── Director（核心页面）
 │   │   ├── 左侧 Sticky 导航（8 模块锚点）
 │   │   ├── IntersectionObserver（滚动高亮）
@@ -123,7 +128,7 @@ optimizeShot(req)          → POST /api/optimize-shot
 optimizePrompt(req)        → POST /api/optimize-prompt
 ```
 
-API_BASE 动态获取：`${window.location.protocol}//${window.location.hostname}:3001/api`
+API_BASE 动态获取：优先使用 public/config.js 设置的 `window.__API_BASE__`，未设置时默认同源 `/api`（本地开发由 Vite 代理或直连 Express 3001）
 
 ## 后端架构
 
@@ -240,12 +245,11 @@ JSON.parse()             → 标准解析
 
 ## 技术决策记录
 
-### ADR-001：使用 Hash 路由而非 Browser 路由
+### ADR-001：使用 BrowserRouter + SPA 回退（修订）
 
-- **背景**：构建产物需要支持 `file://` 协议双击打开
-- **决策**：使用 `HashRouter` 而非 `BrowserRouter`
-- **影响**：URL 中带 `#`，但支持离线打开，无需服务器配置
-
+- **背景**：产品以线上体验为主，深层路径（/director/:id 等）需要可直达、可刷新
+- **决策**：使用 `BrowserRouter`，线上通过 `public/_redirects`（`/* /index.html 200`）提供 SPA 回退
+- **影响**：URL 干净；代价是 `file://` 双击打开仅能访问首页，部署需带回退配置（已内置）
 ### ADR-002：后端代理而非直连 AI API
 
 - **背景**：前端直连 AI API 会暴露 API Key

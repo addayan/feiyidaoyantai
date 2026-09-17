@@ -1,8 +1,23 @@
-﻿{
-    "index.html":  "cdee6b9f5bd08f828e2f6856130ac0ff78df26cc2fdd5dcaf1060c27e8e39023",
-    "assets/index-S03--UY8.css":  "ae7417a502923233efd63d8bcd0ef5df25b62ea1f85c87d02f06c6ceae3c4b0d",
-    "assets/index-DQ1HZyfD.js":  "c885c961caa1d99dc0c99d5dda57a8564d1e1a8ec4375e1e1ab90500b4f0be51",
-    "vite.svg":  "c513b17d8fe2bf10b7313debf83613885b73b389107cf1c9cff60d7b2ada5648",
-    "config.js":  "34b06012dd282ab707681156ec91bb57edd3b22f8f73a5420a040fcf8c24ca54",
-    "hero-bg-legacy.jpg":  "e2a783427399515a36f576685445a0159d13d207b75964073aa97123452faeea"
+{
+    "assets/Cases-D01qwx73.js": "63e3fd681929b0f45cc98d430dd2d00c496299a02030824fa08b32813b8a89f5",
+    "assets/Create-BMS-21t2.js": "1546f9ff1f53e5983db79ca12c9db055a3ce418efd2f053a419c5f273409ad41",
+    "assets/CreateV3-BDa7T-FK.js": "47bb120e2fa37b6581dbac05ad31f74a6d47ba657b658ea8d3aa539891b2a9e0",
+    "assets/Director-C0sWAE7R.js": "beb8e8c57b06bad5f37e03675803c98b552481fc01897fe76b590cc9bca91304",
+    "assets/dnd-kit-BsjwwrGS.js": "fe36ad8b2d71b24e6d96dbd805ada7ff43d1f57bfd3aec32e19c8438e88c26af",
+    "assets/heritageCatalog-B7z0_t6y.js": "16777bc15d5f11f10dce32d9d5b89700a78014c96db942b880fed288433775f4",
+    "assets/HeritageDetail-Dije7Q2N.js": "f3519e9537d9427c301cfaba5313995b9a0ac0d25db0016e2d7b140dd308ebc5",
+    "assets/HeritageLibrary-CWe2HoXb.js": "9dce9990f3141f7a0c2959b61de1962a3631d161b8ba2b7b19e5da78f1ae67bd",
+    "assets/index-AuK8l9y3.js": "95e3bcd64f697adea77d3bab3568f52f07366f7ae5ae377015266d4034159d5c",
+    "assets/index-S03--UY8.css": "ae7417a502923233efd63d8bcd0ef5df25b62ea1f85c87d02f06c6ceae3c4b0d",
+    "assets/mockGenerator-D0DsVA3b.js": "10be0b0850e2419cb8c84c141e46aad9687c464aaa0a378ee3cc2f901c59e84a",
+    "assets/MyProjects-DhstsOku.js": "be9799cb45be3abbed361c596f90e6d286d031d782ae13fe15412af0c82d042b",
+    "assets/NotFound-D0B9Lh2A.js": "e4a61d3f160404b33900a65166147bb3223b4be1e8ebdcf2fd2a5470b706033e",
+    "assets/react-vendor-Cf06ewGT.js": "25caf21fecce9fb90ce6c8d61de403b770307e531f516ef6860ca7cd4571afa5",
+    "assets/TechRoadmap-CjLIJ76v.js": "a546bde0121253568f305be3347b4982b3a793c487278a4ee6eef0eebb0644f2",
+    "assets/useAIHealth-CqcL0SFH.js": "cae3222d22fea5453d72c97944308b8553fee64ff7510389921a5def85aeb100",
+    "config.js": "dc64d920e7b65dc70aba15d710f62f6ee4730ff54f66e2cab91acee828f2ab45",
+    "hero-bg-legacy.jpg": "e2a783427399515a36f576685445a0159d13d207b75964073aa97123452faeea",
+    "index.html": "aae7c5336fa113c86e3ced21befd99ad80ba4f5e7c07a099fcb75532c73ea932",
+    "vite.svg": "8a9b867756995f5e65ec5051573f4c953fe0ef123e53c1b88cd3b24d34052b8b",
+    "_redirects": "c49adea3167af5cd59f34897623242eab5cdd36faa63d7c4aea54ac986a82af5"
 }
