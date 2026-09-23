@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { LIAONING_URL } from '../data/liaoningCase';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -11,7 +10,7 @@ export default function Home() {
       <p style={{ fontSize: 19, marginBottom: 12 }}>从一张剪纸，到一个故事，再到一组可以生成的电影镜头。</p>
       <p style={{ color: 'var(--text-secondary)', lineHeight: 1.9, maxWidth: 780 }}>以辽宁非遗为文化基础，AI 辅助完成故事、角色、场景、分镜、<br />图片提示词、视频提示词与文化表达检查。</p>
       <div style={{ display: 'flex', gap: 16, marginTop: 28, flexWrap: 'wrap' }}>
-        <button className="btn btn-primary" onClick={() => navigate(LIAONING_URL)}>体验《一剪见闾山》 →</button>
+        <button className="btn btn-primary" onClick={() => navigate('/liaoning-case')}>体验《一剪见闾山》 →</button>
         <button className="btn btn-secondary" onClick={() => navigate('/create')}>开始自己的非遗创作</button>
       </div>
     </section>
@@ -27,7 +26,7 @@ export default function Home() {
           <span style={{ color: 'var(--gold)', fontSize: 12 }}>本次主案例 · 8 镜头完整前期创作</span>
           <h2 style={{ fontSize: 34, margin: '10px 0' }}>《一剪见闾山》</h2>
           <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: 18 }}>从一张纸开始，让传统纹样、山林记忆与年轻人的视角，<br />转化成一部 AI 非遗短片。</p>
-          <button className="btn btn-primary" onClick={() => navigate(LIAONING_URL)}>进入完整 AI 导演台 →</button>
+          <button className="btn btn-primary" onClick={() => navigate('/liaoning-case')}>进入完整 AI 导演台 →</button>
         </div>
       </div>
       <p style={{ marginTop: 24, color: 'var(--text-muted)', textAlign: 'center', fontSize: 14 }}>让不会编剧、不会分镜、不会写 AI 提示词的人，也能完成一部辽宁非遗短片的前期创作。</p>
