@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>辽韵 AI 导演台 ·《一剪见闾山》作品集</title>
+<style>
+@page{size:A4;margin:0}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Microsoft YaHei','PingFang SC','Noto Sans CJK SC',sans-serif;background:#0B0F1C;color:#F3EBDC;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{width:210mm;height:297mm;position:relative;overflow:hidden;page-break-after:always;background:#0B0F1C}
+.page:last-child{page-break-after:auto}
+/* 极淡网格覆盖层：全册统一的“数字/坐标”底层语言 */
+.grid::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(243,235,220,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(243,235,220,.045) 1px,transparent 1px);background-size:18mm 18mm}
+.inner{position:absolute;inset:12mm 14mm 11mm 14mm;display:flex;flex-direction:column}
+/* 页眉 */
+.topline{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:5mm;border-bottom:1px solid rgba(243,235,220,.16);font-size:8.5pt;letter-spacing:2.5px;color:rgba(243,235,220,.55)}
+.topline b{color:#C9A15E;font-weight:600}
+/* 页脚 */
+.footer{position:absolute;left:14mm;right:14mm;bottom:6mm;display:flex;justify-content:space-between;padding-top:3mm;border-top:1px solid rgba(243,235,220,.14);font-size:8pt;letter-spacing:2px;color:rgba(243,235,220,.5)}
+.footer b{color:#C9A15E;font-weight:600}
+/* 章节眉 */
+.chapter{font-size:9.5pt;letter-spacing:4px;color:#C9A15E;margin-bottom:5mm}
+h1.title{font-size:30pt;line-height:1.32;margin:0 0 4mm;font-weight:800;letter-spacing:1px}
+h1.title .red{color:#C94A4A}
+.sub{font-size:12.5pt;line-height:1.75;color:rgba(243,235,220,.78);font-weight:400;margin:0}
+.lead{font-size:13.5pt;line-height:1.85;color:rgba(243,235,220,.88);margin:0}
+.small{font-size:9.5pt;line-height:1.85;color:rgba(243,235,220,.58)}
+.gold{color:#C9A15E}
+.red{color:#C94A4A}
+.center{text-align:center}
+/* ============ P1 封面 ============ */
+.cover .inner{justify-content:space-between}
+.cover .meta{display:flex;justify-content:space-between;font-size:8.5pt;letter-spacing:2.5px;color:rgba(243,235,220,.62)}
+.cover .headline{margin-top:16mm}
+.cover .kicker{font-size:10pt;letter-spacing:6px;color:#C9A15E;margin-bottom:6mm}
+.cover .brand{font-size:40pt;font-weight:800;letter-spacing:2px;line-height:1.16;margin:0}
+.cover .brand .ai{color:#C9A15E}
+.cover .brandsub{font-size:15pt;letter-spacing:8px;color:rgba(243,235,220,.85);margin-top:4mm;font-weight:400}
+.cover .case{margin-top:11mm;padding-top:6mm;border-top:1px solid rgba(243,235,220,.18)}
+.cover .case .t1{font-size:17pt;font-weight:700;color:#F3EBDC}
+.cover .case .t1 em{font-style:normal;color:#C94A4A}
+.cover .case .t2{font-size:10.5pt;letter-spacing:1.5px;color:rgba(243,235,220,.7);margin-top:2mm}
+.cover .case .t3{font-size:9.5pt;letter-spacing:3px;color:#C9A15E;margin-top:2.5mm}
+.cover .visarea{position:relative;flex:1;min-height:0;margin-top:6mm}
+.cover .quote{font-size:12.5pt;line-height:2;color:rgba(243,235,220,.92);letter-spacing:1px}
+.cover .quote .red{color:#E2685F}
+/* 红纸窗 SVG 定位 */
+.cover .window{position:absolute;right:0;bottom:0;width:64%;max-height:88%;}
+.cover .window svg{width:100%;height:auto;display:block}
+.cover .qblock{position:absolute;left:0;bottom:0;max-width:52%}
+/* ============ P2 文化依据 ============ */
+.p2 .layout{display:grid;grid-template-columns:1fr 1fr;gap:12mm;flex:1;align-content:stretch}
+.p2 .left{display:flex;flex-direction:column;justify-content:flex-start}
+.p2 .left h1.title{font-size:26pt}
+.p2 .right{display:flex;flex-direction:column;justify-content:space-between}
+.factlist{margin-top:6mm}
+.fact{display:flex;gap:6mm;align-items:baseline;padding:2.6mm 0;border-bottom:1px solid rgba(243,235,220,.12)}
+.fact:last-child{border-bottom:none}
+.fact .k{flex:0 0 34mm;font-size:9pt;letter-spacing:2px;color:rgba(243,235,220,.55)}
+.fact .v{font-size:11.5pt;color:#F3EBDC;font-weight:500}
+.fact .v em{font-style:normal;color:#C9A15E}
+.p2 .desc{margin-top:5mm;font-size:10.5pt;line-height:1.95;color:rgba(243,235,220,.68)}
+.p2 .pains{margin-top:0;position:relative}
+.pain{display:flex;gap:4mm;align-items:baseline;padding:3mm 0;border-bottom:1px solid rgba(243,235,220,.12)}
+.pain:last-child{border-bottom:none}
+.pain .no{font-size:8pt;color:#C94A4A;letter-spacing:1px}
+.pain .big{font-size:13pt;font-weight:700}
+.pain .big small{font-size:9.5pt;font-weight:400;color:rgba(243,235,220,.6);margin-left:3mm}
+.p2 .core{margin-top:0;font-size:17pt;font-weight:700;line-height:1.7;color:#F3EBDC}
+.p2 .core .red{color:#E2685F}
+.p2 .src{margin-top:auto;font-size:8.5pt;line-height:1.9;color:rgba(243,235,220,.5)}
+/* ============ P3 产品逻辑 ============ */
+.p3 .lead{margin-bottom:7mm}
+.flowgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:3mm;position:relative}
+.fnode{position:relative;padding:4mm 3mm 5mm;border-top:2px solid rgba(243,235,220,.2);min-height:44mm}
+.fnode .num{font-size:9pt;color:#C9A15E;letter-spacing:2px}
+.fnode .nm{font-size:11.5pt;font-weight:700;margin-top:2mm;line-height:1.4}
+.fnode .ds{font-size:8.5pt;color:rgba(243,235,220,.55);margin-top:1.5mm;line-height:1.6}
+.fnode .dot{position:absolute;top:-4px;left:0;width:8px;height:8px;border-radius:50%;background:#C9A15E;transform:translateY(-50%)}
+.fnode.main{border-top:3px solid #C94A4A;background:linear-gradient(180deg,rgba(201,74,74,.16),rgba(201,74,74,0));min-height:56mm}
+.fnode.main .num{color:#E2685F;font-size:10pt}
+.fnode.main .nm{font-size:15pt;color:#F3EBDC}
+.fnode.main .dot{background:#C94A4A;width:11px;height:11px;box-shadow:0 0 0 4px rgba(201,74,74,.18)}
+.fnode.ghost{border-top:2px solid rgba(243,235,220,.12)}
+.p3 .bottom{margin-top:9mm;font-size:13pt;font-weight:700;line-height:1.8;color:#F3EBDC}
+.p3 .bottom .red{color:#E2685F}
+/* ============ P4 案例故事 ============ */
+.p4 .story{display:flex;align-items:stretch;gap:2mm;margin-top:6mm}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;gap:2.5mm;padding:3mm 1mm}
+.step .sym{width:24mm;height:24mm;display:flex;align-items:center;justify-content:center;border:1px solid rgba(243,235,220,.2);border-radius:50%;background:rgba(243,235,220,.03)}
+.step .sym svg{width:13mm;height:13mm}
+.step .sn{font-size:7.5pt;letter-spacing:2px;color:#C9A15E}
+.step .st{font-size:10pt;font-weight:700}
+.step .sd{font-size:8pt;color:rgba(243,235,220,.5);text-align:center;line-height:1.6}
+.arrow{align-self:center;color:#C94A4A;font-size:14pt}
+.p4 .core{margin-top:7mm;font-size:15.5pt;font-weight:700;line-height:1.7;text-align:center;color:#F3EBDC}
+.p4 .core .red{color:#E2685F}
+.p4 .shotsrow{display:grid;grid-template-columns:1fr 1fr;gap:6mm;margin-top:8mm;flex:1;align-content:stretch}
+.shotbox{display:flex;flex-direction:column}
+.shotbox .cap{font-size:8.5pt;letter-spacing:2px;color:#C9A15E;margin-bottom:2mm}
+.shotbox img{width:100%;height:auto;display:block;border:1px solid rgba(243,235,220,.22);border-radius:2mm;flex:1}
+/* ============ P5 8镜头 ============ */
+.p5 .shotsbig{position:relative;flex:0 0 103mm;display:flex;justify-content:center;margin-top:4mm}
+.p5 .shotsbig img{height:103mm;width:auto;max-width:100%;display:block;border:1px solid rgba(243,235,220,.24);border-radius:2mm;object-fit:cover;object-position:top}
+.p5 .badge{position:absolute;top:-4mm;right:4mm;text-align:right}
+.p5 .badge .b1{font-size:22pt;font-weight:800;color:#F3EBDC;letter-spacing:1px}
+.p5 .badge .b2{font-size:9.5pt;letter-spacing:4px;color:#C9A15E}
+.shotlist{display:grid;grid-template-columns:repeat(4,1fr);gap:2.5mm;margin-top:5mm}
+.shotitem{display:flex;gap:2mm;align-items:baseline;font-size:9pt}
+.shotitem .n{color:#C94A4A;font-weight:700}
+.shotitem .t{color:rgba(243,235,220,.8)}
+.p5 .closing{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;padding-top:5mm;border-top:1px solid rgba(243,235,220,.14)}
+.p5 .coreline{font-size:15pt;font-weight:700;line-height:1.6;color:#F3EBDC}
+.p5 .coreline .red{color:#E2685F}
+.p5 .note{font-size:8.5pt;color:rgba(243,235,220,.5);text-align:right;line-height:1.7}
+/* ============ P6 Prompt ============ */
+.p6 .layout{display:grid;grid-template-columns:92mm 1fr;gap:9mm;flex:1;align-content:start;margin-top:5mm}
+.p6 .left{display:flex;flex-direction:column;gap:4mm}
+.p6 .left img{width:100%;height:auto;display:block;border:1px solid rgba(243,235,220,.24);border-radius:2mm}
+.p6 .left .cap{font-size:8.5pt;letter-spacing:2px;color:#C9A15E}
+.p6 .params{display:grid;grid-template-columns:1fr 1fr;gap:2mm 6mm}
+.param{display:flex;justify-content:space-between;align-items:baseline;padding:1.6mm 0 1.6mm 3mm;border-left:2px solid #C94A4A}
+.param .k{font-size:8.5pt;color:rgba(243,235,220,.55);letter-spacing:1px}
+.param .v{font-size:11pt;font-weight:600}
+.param .v.hl{color:#C94A4A}
+.p6 .scorebox{margin-top:4mm;padding:3mm 4mm;border:1px solid rgba(201,74,74,.5);border-radius:2mm;background:rgba(201,74,74,.08)}
+.p6 .scorebox .row{display:flex;justify-content:space-between;align-items:baseline}
+.p6 .scorebox .row .k{font-size:9pt;color:rgba(243,235,220,.7);letter-spacing:1px}
+.p6 .scorebox .row .v{font-size:15pt;font-weight:800;color:#E2685F}
+.p6 .scorebox .s{font-size:8pt;color:rgba(243,235,220,.5);margin-top:1.5mm;line-height:1.6}
+.p6 .prompts{margin-top:6mm}
+.prompt{display:grid;grid-template-columns:30mm 1fr;gap:4mm;padding:2.6mm 0;border-bottom:1px solid rgba(243,235,220,.14);align-items:start}
+.prompt:last-child{border-bottom:none}
+.prompt .pk{font-size:9.5pt;color:#C9A15E;letter-spacing:1.5px;padding-top:.5mm}
+.prompt .pv{font-size:9pt;line-height:1.8;color:rgba(243,235,220,.8)}
+.p6 .closing{margin-top:auto;font-size:12.5pt;font-weight:700;color:#F3EBDC}
+.p6 .closing .red{color:#E2685F}
+.p6 .disc{margin-top:2.5mm;font-size:8.5pt;color:rgba(243,235,220,.5);line-height:1.7}
+/* ============ P7 文化边界 ============ */
+.p7 .layout{display:grid;grid-template-columns:1fr 1px 1fr;gap:12mm;flex:1;align-content:center;margin-top:6mm}
+.p7 .coltitle{font-size:10pt;letter-spacing:3px;margin-bottom:5mm;display:flex;align-items:center;gap:3mm}
+.p7 .coltitle .tag{display:inline-block;width:4mm;height:4mm;border-radius:50%}
+.p7 .coltitle .tag.fact{background:#C94A4A}
+.p7 .coltitle .tag.creat{background:#C9A15E}
+.p7 .divider{background:rgba(243,235,220,.2)}
+.p7 ul{margin:0;padding:0;list-style:none}
+.p7 li{display:flex;gap:4mm;align-items:baseline;padding:2.4mm 0;border-bottom:1px solid rgba(243,235,220,.1);font-size:10.5pt;line-height:1.6}
+.p7 li:last-child{border-bottom:none}
+.p7 li .k{flex:0 0 30mm;font-size:8.5pt;color:rgba(243,235,220,.5);letter-spacing:1px}
+.p7 .core{margin-top:9mm;text-align:center;font-size:16pt;font-weight:800;line-height:1.7}
+.p7 .core .red{color:#E2685F}
+.p7 .warn{margin-top:5mm;text-align:center;font-size:9.5pt;line-height:2.1;color:rgba(243,235,220,.75)}
+.p7 .note{margin-top:4mm;text-align:center;font-size:8.5pt;line-height:1.8;color:rgba(243,235,220,.5)}
+/* ============ P8 结束页 ============ */
+.p8 .layout{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9mm;text-align:center}
+.p8 .art{width:86mm}
+.p8 .art svg{width:100%;height:auto}
+.p8 .apps{display:flex;flex-wrap:wrap;justify-content:center;gap:2.5mm 7mm;font-size:10pt;color:rgba(243,235,220,.8);letter-spacing:1px}
+.p8 .apps span{border-bottom:1px solid rgba(243,235,220,.25);padding-bottom:1mm}
+.p8 .ending{font-size:19pt;font-weight:800;line-height:2;color:#F3EBDC}
+.p8 .ending .red{color:#E2685F}
+.p8 .ending .gold{color:#C9A15E}
+.p8 .sign{font-size:9pt;letter-spacing:4px;color:rgba(243,235,220,.55)}
+.p8 .sign b{color:#C9A15E}
+.p8 .tagline{font-size:8.5pt;color:rgba(243,235,220,.45);letter-spacing:2px}
+</style>
+<body>
+
+<!-- ==================== P1 封面 ==================== -->
+<section class="page cover grid">
+  <div class="inner">
+    <div class="meta">
+      <span>2026 · 第五届辽宁省大学生商业设计创意大赛</span>
+      <span>D 类 · UI / 交互设计</span>
+    </div>
+    <div class="headline">
+      <div class="kicker">辽 宁 非 遗 · 数 字 影 像 创 新</div>
+      <h1 class="brand">辽韵 <span class="ai">AI</span> 导演台</h1>
+      <div class="brandsub">辽宁非遗数字影像创作系统</div>
+      <div class="case">
+        <div class="t1">《一剪见闾山》 <em>·</em> 核心案例</div>
+        <div class="t2">剪纸（医巫闾山满族剪纸） · AI 数字影像创作案例</div>
+        <div class="t3">传 统 美 术 / Ⅶ - 16 · 辽 宁 省 锦 州 市</div>
+      </div>
+    </div>
+    <div class="visarea">
+      <div class="window" id="coverArt"></div>
+      <div class="qblock">
+        <div class="quote">让传统文化不是被 AI 简单“画出来”，<br>而是被<span class="red">理解</span>、被<span class="red">讲述</span>、被<span class="red">继续创作</span>。</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>辽宁非遗数字影像创作系统 ·《一剪见闾山》</span><b>01 / 08</b></div>
+</section>
+
+<!-- ==================== P2 文化依据 ==================== -->
+<section class="page p2 grid">
+  <div class="inner">
+    <div class="topline"><span>辽韵 AI 导演台</span><span>02 · 文化依据 / 用户问题</span></div>
+    <div class="chapter">02 / 文化依据 · 用户问题</div>
+    <div class="layout">
+      <div class="left">
+        <h1 class="title">为什么做<br>医巫闾山满族剪纸？</h1>
+        <div class="factlist">
+          <div class="fact"><span class="k">正式项目名称</span><span class="v">剪纸（医巫闾山满族剪纸）</span></div>
+          <div class="fact"><span class="k">类别 / 编号</span><span class="v">传统美术 / <em>Ⅶ-16</em></span></div>
+          <div class="fact"><span class="k">申报地区</span><span class="v">辽宁省锦州市</span></div>
+          <div class="fact"><span class="k">公布时间</span><span class="v">2006 年 · 第一批</span></div>
+          <div class="fact"><span class="k">项目级别</span><span class="v">国家级非物质文化遗产代表性项目</span></div>
+        </div>
+        <div class="desc">流传于辽西医巫闾山地区，造型简洁、纹样古朴，保留鲜明的东北满族人文特征与地方民俗文化信息——它不止是一张红纸，更是一整套地方生活的视觉语言。</div>
+      </div>
+      <div class="right">
+        <div class="pains">
+          <div class="pain"><span class="no">01</span><span class="big">不了解文化<small>资料与视觉灵感之间缺少事实边界</small></span></div>
+          <div class="pain"><span class="no">02</span><span class="big">不会讲故事<small>文化主题难以转化为人物与情节</small></span></div>
+          <div class="pain"><span class="no">03</span><span class="big">不会分镜<small>一个想法难以拆成可执行镜头</small></span></div>
+          <div class="pain"><span class="no">04</span><span class="big">不会写提示词<small>文字创意与图片、视频生产脱节</small></span></div>
+        </div>
+        <div class="core">真正的门槛，<br>是如何把<span class="red">理解</span>变成<span class="red">表达</span>。</div>
+      </div>
+    </div>
+    <div class="src">事实来源：中国非物质文化遗产网 · 中国非物质文化遗产数字博物馆<br>https://www.ihchina.cn/project_details/13927.html<br>核验日期：2026-09-23。故事、人物与镜头属于原创创意层。</div>
+  </div>
+  <div class="footer"><span>辽宁非遗数字影像创作系统 ·《一剪见闾山》</span><b>02 / 08</b></div>
+</section>
+
+<!-- ==================== P3 产品逻辑 ==================== -->
+<section class="page p3 grid">
+  <div class="inner">
+    <div class="topline"><span>辽韵 AI 导演台</span><span>03 · 交互逻辑 / 创作流程</span></div>
+    <div class="chapter">03 / 交互逻辑 · 创作流程</div>
+    <h1 class="title">我们的解决方案</h1>
+    <p class="lead">让不会编剧、不会分镜、不会写 AI 提示词的人，<br>也能完成一部辽宁非遗短片的前期创作。</p>
+    <div class="flowgrid">
+      <div class="fnode"><span class="dot"></span><div class="num">01</div><div class="nm">了解非遗</div><div class="ds">核对项目、地域与官方资料</div></div>
+      <div class="fnode"><span class="dot"></span><div class="num">02</div><div class="nm">故事创意</div><div class="ds">从“看见红纸”到“主动记录”</div></div>
+      <div class="fnode"><span class="dot"></span><div class="num">03</div><div class="nm">角色 / 场景</div><div class="ds">统一人物锚点、空间与视觉语言</div></div>
+      <div class="fnode main"><span class="dot"></span><div class="num">04</div><div class="nm">AI 分镜导演</div><div class="ds">拆解景别、构图、运镜与时间 —— 产品核心</div></div>
+      <div class="fnode ghost"><span class="dot"></span><div class="num">05</div><div class="nm">首帧图片 Prompt</div><div class="ds">明确画面主体、位置、光线与材质</div></div>
+      <div class="fnode ghost"><span class="dot"></span><div class="num">06</div><div class="nm">视频 Prompt</div><div class="ds">明确动作、节奏与首尾变化</div></div>
+      <div class="fnode ghost"><span class="dot"></span><div class="num">07</div><div class="nm">文化表达检查</div><div class="ds">区分文化事实、现代创意与待核验素材</div></div>
+      <div class="fnode ghost"><span class="dot"></span><div class="num">08</div><div class="nm">导出创作资产</div><div class="ds">复制提示词，导出项目与文稿</div></div>
+    </div>
+    <div class="bottom">这是 <span class="red">AI 辅助导演工作流</span>，<br>不是普通聊天机器人。</div>
+  </div>
+  <div class="footer"><span>辽宁非遗数字影像创作系统 ·《一剪见闾山》</span><b>03 / 08</b></div>
+</section>
+
+<!-- ==================== P4 案例故事 ==================== -->
+<section class="page p4 grid">
+  <div class="inner">
+    <div class="topline"><span>辽韵 AI 导演台</span><span>04 · 核心界面 / 进入创作</span></div>
+    <div class="chapter">04 / 核心界面 · 进入创作</div>
+    <h1 class="title">从一张红纸开始</h1>
+    <p class="sub">《一剪见闾山》 · 医巫闾山满族剪纸 · AI 数字影像创作案例</p>
+    <div class="story">
+      <div class="step"><div class="sym"><svg viewBox="0 0 24 24" fill="none" stroke="#C94A4A" stroke-width="1.3"><rect x="4" y="7" width="16" height="11" rx="1"/><path d="M10 10l2 2 2-2"/><path d="M12 12v3"/></svg></div><div class="sn">01</div><div class="st">看见红纸</div><div class="sd">一张剪纸静静铺开</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="sym"><svg viewBox="0 0 24 24" fill="none" stroke="#C94A4A" stroke-width="1.3"><path d="M14 5l5 5-3.5 3.5L10.5 8.5z"/><path d="M8 12l3 3-3.5 3.5L4.5 15.5z"/><path d="M10 14l4-4"/></svg></div><div class="sn">02</div><div class="st">观察剪刻</div><div class="sd">手与剪刀、纸屑落下</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="sym"><svg viewBox="0 0 24 24" fill="none" stroke="#C94A4A" stroke-width="1.3"><path d="M3 17l5-7 3 4 3-6 7 9z"/><circle cx="17" cy="7" r="1.6"/></svg></div><div class="sn">03</div><div class="st">连接山林</div><div class="sd">镂空与山影匹配转场</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="sym"><svg viewBox="0 0 24 24" fill="none" stroke="#C94A4A" stroke-width="1.3"><rect x="3" y="5" width="18" height="12" rx="1"/><path d="M9 20h6M12 17v3"/><path d="M6 9h4v4H6z"/></svg></div><div class="sn">04</div><div class="st">数字记录</div><div class="sd">整理故事、镜头与提示词</div></div>
+    </div>
+    <div class="core">数字化不是替代手艺，<br>而是让更多年轻人<span class="red">重新看见它</span>。</div>
+    <div class="shotsrow">
+      <div class="shotbox"><div class="cap">01 · 系统首页 / 聚焦辽宁非遗与《一剪见闾山》</div><img src="screenshots/01-首页.png"></div>
+      <div class="shotbox"><div class="cap">02 · 创作入口 / 推荐项目一键填入</div><img src="screenshots/02-创作入口.png"></div>
+    </div>
+  </div>
+  <div class="footer"><span>辽宁非遗数字影像创作系统 ·《一剪见闾山》</span><b>04 / 08</b></div>
+</section>
+
+<!-- ==================== P5 8镜头 ==================== -->
+<section class="page p5 grid">
+  <div class="inner">
+    <div class="topline"><span>辽韵 AI 导演台</span><span>05 · 核心界面 / 分镜组织</span></div>
+    <div class="chapter">05 / 核心界面 · 分镜组织</div>
+    <h1 class="title">把一个故事拆成<br>8 个可执行镜头</h1>
+    <p class="sub">一个故事，60 秒。从观看，到理解，再到记录。</p>
+    <div class="shotsbig">
+      <img src="screenshots/04-8镜头.png">
+      <div class="badge"><div class="b1">08 SHOTS</div><div class="b2">8 个镜头 · 60 秒</div></div>
+    </div>
+    <div class="shotlist">
+      <div class="shotitem"><span class="n">01</span><span class="t">一张红纸</span></div>
+      <div class="shotitem"><span class="n">02</span><span class="t">纸上的纹样</span></div>
+      <div class="shotitem"><span class="n">03</span><span class="t">剪刀落下</span></div>
+      <div class="shotitem"><span class="n">04</span><span class="t">纸里的山</span></div>
+      <div class="shotitem"><span class="n">05</span><span class="t">旧图形，新观看</span></div>
+      <div class="shotitem"><span class="n">06</span><span class="t">让纸活起来</span></div>
+      <div class="shotitem"><span class="n">07</span><span class="t">重新记录</span></div>
+      <div class="shotitem"><span class="n">08</span><span class="t">一剪见闾山</span></div>
+    </div>
+    <div class="closing">
+      <div class="coreline">从文案，<br>走向<span class="red">生产结构</span>。</div>
+      <div class="note">输出故事、角色、场景与镜头参数，形成可以继续进入图片与视频生产的创作资产。<br>当前为前期方案，画面生成与成片制作需在后续工具中完成。</div>
+    </div>
+  </div>
+  <div class="footer"><span>辽宁非遗数字影像创作系统 ·《一剪见闾山》</span><b>05 / 08</b></div>
+</section>
+
+<!-- ==================== P6 Prompt ==================== -->
+<section class="page p6 grid">
+  <div class="inner">
+    <div class="topline"><span>辽韵 AI 导演台</span><span>06 · 核心界面 / 提示词</span></div>
+    <div class="chapter">06 / 核心界面 · 提示词</div>
+    <h1 class="title">从“想法”到<br>AI 可生成提示词</h1>
+    <p class="sub">把创意进一步转化成可以继续进入图片和视频生产的结构化描述。</p>
+    <div class="layout">
+      <div class="left">
+        <img src="screenshots/05-单镜头Prompt.png">
+        <div class="cap">01 · 一张红纸 / 单镜头展开 · 参数与三条提示词</div>
+      </div>
+      <div class="right">
+        <div class="params">
+          <div class="param"><span class="k">画面描述</span><span class="v" style="font-size:9.5pt">深色桌面上，一张红色剪纸静静铺开。手停在画面边缘。</span></div>
+          <div class="param"><span class="k">景别</span><span class="v">特写</span></div>
+          <div class="param"><span class="k">构图</span><span class="v">中心构图</span></div>
+          <div class="param"><span class="k">运镜</span><span class="v">固定 · 微距</span></div>
+          <div class="param"><span class="k">光线</span><span class="v">侧光</span></div>
+          <div class="param"><span class="k">角度</span><span class="v">俯视</span></div>
+          <div class="param"><span class="k">时长</span><span class="v hl">7 秒</span></div>
+        </div>
+        <div class="scorebox">
+          <div class="row"><span class="k">可生成性预估（制作前人工评估）</span><span class="v">94 / 100</span></div>
+          <div class="s">短动作、稳定结构与后期合成建议写入提示词；评分为人工预估，尚未进行实际视频生成测试。</div>
+        </div>
+      </div>
+    </div>
+    <div class="prompts">
+      <div class="prompt"><span class="pk">首帧图片提示词</span><span class="pv">红纸平铺于桌面中央，手停在右下画外边缘。特写，俯视，中心构图，侧光。写实电影，16:9，深蓝黑、剪纸红与暖金，红纸纤维真实，原创简洁古朴的纸张轮廓，不复制已有作品。同一位 20 岁左右短发青年，灰色现代衬衫、深色长裤；手艺人只出现双手，不对应真实人物。</span></div>
+      <div class="prompt"><span class="pk">尾帧图片提示词</span><span class="pv">焦点落到纸纤维，手依然保持距离。特写，中心构图，侧光。写实电影，16:9，深蓝黑、剪纸红与暖金，红纸纤维真实，原创简洁古朴的纸张轮廓，不复制已有作品。同一位 20 岁左右短发青年，灰色现代衬衫、深色长裤；手艺人只出现双手，不对应真实人物。</span></div>
+      <div class="prompt"><span class="pk">视频生成提示词</span><span class="pv">7 秒，24fps，16:9。固定微距，焦点由手缘轻移到红纸表面；建立第一次看见。写实电影，16:9，深蓝黑、剪纸红与暖金，红纸纤维真实，原创简洁古朴的纸张轮廓，不复制已有作品。同一位 20 岁左右短发青年，灰色现代衬衫、深色长裤；手艺人只出现双手，不对应真实人物。</span></div>
+    </div>
+    <div class="closing">让创意直接进入<span class="red">下一步图像与视频生产</span>。</div>
+    <div class="disc">当前为前期制作方案，实际图像与视频生成仍由后续生成工具完成。可生成性评分 94/100 为制作前人工预估。</div>
+  </div>
+  <div class="footer"><span>辽宁非遗数字影像创作系统 ·《一剪见闾山》</span><b>06 / 08</b></div>
+</section>
+
+<!-- ==================== P7 文化边界 ==================== -->
+<section class="page p7 grid">
+  <div class="inner">
+    <div class="topline"><span>辽韵 AI 导演台</span><span>07 · 核心界面 / 文化边界</span></div>
+    <div class="chapter">07 / 核心界面 · 文化边界</div>
+    <h1 class="title">AI 创作，也需要文化边界</h1>
+    <div class="layout">
+      <div class="col">
+        <div class="coltitle"><span class="tag fact"></span>文化事实层</div>
+        <ul>
+          <li><span class="k">正式名称</span><span>剪纸（医巫闾山满族剪纸）</span></li>
+          <li><span class="k">编号 / 类别</span><span>Ⅶ-16 · 传统美术</span></li>
+          <li><span class="k">申报地区</span><span>辽宁省锦州市</span></li>
+          <li><span class="k">公布批次</span><span>2006 年 · 第一批</span></li>
+          <li><span class="k">项目级别</span><span>国家级非物质文化遗产代表性项目</span></li>
+          <li><span class="k">官方资料</span><span>ihchina.cn · 核验于 2026-09-23</span></li>
+        </ul>
+      </div>
+      <div class="divider"></div>
+      <div class="col">
+        <div class="coltitle"><span class="tag creat"></span>现代创意层</div>
+        <ul>
+          <li><span class="k">人物</span><span>当代观看者 / 记录者（虚构角色）</span></li>
+          <li><span class="k">故事</span><span>从看见红纸，到主动记录</span></li>
+          <li><span class="k">镜头</span><span>8 镜头 · 60 秒 · 前期创作方案</span></li>
+          <li><span class="k">转场</span><span>匹配剪辑 · 叠化 · 硬切</span></li>
+          <li><span class="k">数字视觉</span><span>红纸、镂空、窗光与山影</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="core">AI 可以参与创意，<br>但不能<span class="red">替代文化事实核验</span>。</div>
+    <div class="warn">避免不同地区文化混用 · 避免猎奇化 · 避免虚构传承人 · 不随意解释未经核验的纹样含义</div>
+    <div class="note">《一剪见闾山》中的现代人物与故事属于原创艺术表达，并非历史人物复原。</div>
+  </div>
+  <div class="footer"><span>辽宁非遗数字影像创作系统 ·《一剪见闾山》</span><b>07 / 08</b></div>
+</section>
+
+<!-- ==================== P8 结束页 ==================== -->
+<section class="page p8 grid">
+  <div class="inner">
+    <div class="topline"><span>辽韵 AI 导演台</span><span>08 · 应用价值 / 数字传播</span></div>
+    <div class="chapter">08 / 应用价值 · 数字传播</div>
+    <div class="layout">
+      <h1 class="title" style="margin-bottom:0">让辽宁非遗拥有<br>新的数字表达入口</h1>
+      <div class="art">
+        <svg viewBox="0 0 520 300" fill="none">
+          <!-- 细网格 -->
+          <g stroke="rgba(243,235,220,.1)" stroke-width=".6">
+            <path d="M60 40v220M100 40v220M140 40v220M180 40v220M220 40v220M260 40v220M300 40v220M340 40v220M380 40v220M420 40v220M460 40v220M500 40v220"/>
+            <path d="M40 70h440M40 110h440M40 150h440M40 190h440M40 230h440"/>
+          </g>
+          <!-- 红纸：左 -->
+          <path d="M60 120l14-8 8 6 16-10 10 8 22-12v70H60z" fill="#A83A44"/>
+          <circle cx="104" cy="142" r="7" fill="#0B0F1C"/>
+          <path d="M76 170l8 10 12-6z" fill="#0B0F1C"/>
+          <!-- 红纸 → 山 → 数字 的过渡线 -->
+          <path d="M120 150c40 8 60-20 90-12s40-8 70 2" stroke="rgba(243,235,220,.5)" stroke-width="1" stroke-dasharray="3 3"/>
+          <!-- 层叠山影 -->
+          <path d="M180 240l40-70 30 40 42-64 48 58 34-44 46 80z" fill="#1C2740"/>
+          <path d="M210 240l32-46 26 34 30-42 34 54z" fill="#26334F"/>
+          <path d="M240 240l24-30 22 30z" fill="#33415F"/>
+          <circle cx="416" cy="150" r="14" fill="#E8D5B0" opacity=".92"/>
+          <!-- 数字取景框 -->
+          <rect x="356" y="96" width="90" height="60" stroke="#C9A15E" stroke-width="1.4"/>
+          <rect x="420" y="140" width="72" height="48" stroke="rgba(243,235,220,.55)" stroke-width="1"/>
+          <path d="M398 126h6M398 134h6" stroke="#C94A4A" stroke-width="1.4"/>
+          <circle cx="401" cy="126" r="1.6" fill="#C94A4A"/>
+          <!-- 坐标标签 -->
+          <text x="356" y="178" fill="#C9A15E" font-size="9" font-family="inherit" letter-spacing="2">SHOT 04 · 00:00:30</text>
+        </svg>
+      </div>
+      <div class="apps">
+        <span>辽宁文旅</span><span>高校课程</span><span>大学生 AIGC 创作</span><span>文化馆 / 博物馆</span><span>非遗数字传播</span><span>青年文化教育</span>
+      </div>
+      <div class="ending">从一张纸开始，<br>让更多年轻人，<br><span class="red">重新看见</span><span class="gold">辽宁非遗</span>。</div>
+      <div class="sign">《一剪见闾山》 · 辽韵 <b>AI</b> 导演台</div>
+      <div class="tagline">以文化事实为起点，以原创叙事为路径，以可执行镜头为成果。</div>
+    </div>
+  </div>
+  <div class="footer"><span>辽宁非遗数字影像创作系统 ·《一剪见闾山》</span><b>08 / 08</b></div>
+</section>
+
+<script>
+// 封面主视觉：红纸 · 镂空窗 · 医巫闾山层叠山影（原创抽象视觉）
+document.getElementById('coverArt').innerHTML = `
+<svg viewBox="0 0 540 560" fill="none">
+  <!-- 极淡坐标网格 -->
+  <g stroke="rgba(243,235,220,.07)" stroke-width=".7">
+    <path d="M40 60v440M110 60v440M180 60v440M250 60v440M320 60v440M390 60v440M460 60v440M520 60v440"/>
+    <path d="M20 100h500M20 170h500M20 240h500M20 310h500M20 380h500M20 450h500M20 520h500"/>
+  </g>
+  <!-- 红纸主体：轻微起伏的剪纸边缘 -->
+  <path d="M70 90c24-10 44 4 66-2s52-4 72 4l4 30c6 26-4 44 0 74l-2 120c-10 30 6 56 0 88l-96 6c-30 8-58-4-88-2l-4-66c-8-40 4-70 0-110l4-92c4-30-8-34 4-62l40-4z"
+        fill="#A83A44"/>
+  <!-- 红纸边缘的镂空负空间 -->
+  <circle cx="120" cy="130" r="9" fill="#0B0F1C"/>
+  <path d="M470 150l12 10-12 10-12-10z" fill="#0B0F1C"/>
+  <circle cx="452" cy="382" r="8" fill="#0B0F1C"/>
+  <path d="M96 430l9 12-9 12-9-12z" fill="#0B0F1C"/>
+  <path d="M250 108l8 8-8 8-8-8z" fill="#0B0F1C"/>
+  <!-- 窗：山脊形负空间（从红纸中剪出） -->
+  <path d="M150 250c40-52 64-70 108-88 30 24 52 44 78 88v150c-30-6-46-16-70-18v-64c0-40-8-60-16-74-14 20-26 44-40 74v64c-22 4-42 12-60 18z"
+        fill="#0B0F1C"/>
+  <!-- 窗内：夜空细线 -->
+  <g stroke="rgba(243,235,220,.14)" stroke-width=".6">
+    <path d="M160 268h160M150 296h180M145 324h190M148 352h184"/>
+  </g>
+  <!-- 窗内：医巫闾山层叠山影（抽象轮廓） -->
+  <path d="M128 392c30-58 66-92 104-120 40 34 76 66 112 120v24c-60-20-116-20-216 0z" fill="#141B2C"/>
+  <path d="M150 392c26-40 54-66 86-88 34 28 62 54 92 88z" fill="#1E2A46"/>
+  <path d="M186 392c20-24 40-38 58-46 22 18 38 32 54 46z" fill="#2A3858"/>
+  <!-- 窗内：暖月 -->
+  <circle cx="240" cy="250" r="16" fill="#E8D5B0" opacity=".94"/>
+  <!-- 红纸上的纤细高光 -->
+  <path d="M104 96c20-6 42-4 62 0" stroke="rgba(243,235,220,.35)" stroke-width="1"/>
+  <!-- 电影标签（克制） -->
+  <text x="330" y="520" fill="#C9A15E" font-size="11" font-family="inherit" letter-spacing="3">FRAME 01 · 00:00:07</text>
+  <path d="M330 512h132" stroke="rgba(201,161,94,.5)" stroke-width="1"/>
+</svg>`;
+</script>
+</body>
+</html>

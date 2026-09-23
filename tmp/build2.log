@@ -1,0 +1,7 @@
+﻿
+> intangible-heritage-studio@2.2.0 build
+> tsc -b && vite build && node scripts/generate-manifest.mjs
+
+src/pages/Home.tsx(6,11): error TS17008: JSX element 'div' has no corresponding closing tag.
+src/pages/Home.tsx(45,1): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/pages/Home.tsx(46,1): error TS1005: '</' expected.

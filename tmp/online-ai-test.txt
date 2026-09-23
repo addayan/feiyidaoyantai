@@ -1,0 +1,3 @@
+﻿HEALTH: {"ok":true,"service":"è¾½éµ AI å¯¼æ¼å° AI åç«¯ (Pages Functions)","modelConfigured":true,"modelId":"agnes-2.5-flash","source":"kv-or-env"}
+GENERATE ERR: 远程服务器返回错误: (500) 内部服务器错误。
+

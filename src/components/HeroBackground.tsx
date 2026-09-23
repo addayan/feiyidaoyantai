@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /* ============================================================
-   科技线路 SVG — 还原旧版，但保持克制
+   科技线路 SVG — 仅保留线路和节点，去掉傩面脸轮廓
    ============================================================ */
 function TechCircuitSVG() {
   return (
@@ -30,12 +30,6 @@ function TechCircuitSVG() {
       <circle cx="1040" cy="500" r="4" fill="#2dd4bf" opacity="0.5" />
       <circle cx="300" cy="700" r="3" fill="#d4a853" opacity="0.4" />
       <circle cx="1140" cy="700" r="3" fill="#2dd4bf" opacity="0.4" />
-      {/* 傩面轮廓抽象 */}
-      <path d="M620,380 Q620,340 660,330 Q700,320 720,350 Q740,320 780,330 Q820,340 820,380 Q830,420 800,460 Q770,500 720,520 Q670,500 640,460 Q610,420 620,380Z" fill="none" stroke="#d4a853" strokeWidth="1.5" opacity="0.25" />
-      <path d="M660,380 Q660,370 670,365 Q680,360 690,370 Q695,380 690,390 Q685,400 675,395 Q665,390 660,380Z" fill="none" stroke="#d4a853" strokeWidth="1" opacity="0.2" />
-      <path d="M750,380 Q750,370 760,365 Q770,360 780,370 Q785,380 780,390 Q775,400 765,395 Q755,390 750,380Z" fill="none" stroke="#d4a853" strokeWidth="1" opacity="0.2" />
-      <path d="M700,410 Q710,400 720,410 Q730,420 720,435 Q710,445 700,435 Q690,425 700,410Z" fill="none" stroke="#d4a853" strokeWidth="1.5" opacity="0.25" />
-      <path d="M680,460 Q700,470 720,465 Q740,470 760,460" fill="none" stroke="#d4a853" strokeWidth="1" opacity="0.2" />
       {/* 装饰点 */}
       <circle cx="100" cy="200" r="2" fill="#d4a853" opacity="0.3" />
       <circle cx="1340" cy="200" r="2" fill="#2dd4bf" opacity="0.3" />
@@ -46,13 +40,13 @@ function TechCircuitSVG() {
 }
 
 /* ============================================================
-   Canvas 粒子系统 — 完全还原旧版
-   60 粒子，金/青色，距离连线，IntersectionObserver 暂停
+   Canvas 粒子系统 — 60 粒子，金/青色，距离连线
    ============================================================ */
-function ParticlesCanvas() {
+function ParticlesCanvas({ reduceMotion }: { reduceMotion: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (reduceMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -158,7 +152,9 @@ function ParticlesCanvas() {
       if (animationId) cancelAnimationFrame(animationId);
       observer.disconnect();
     };
-  }, []);
+  }, [reduceMotion]);
+
+  if (reduceMotion) return null;
 
   return (
     <canvas
@@ -176,43 +172,82 @@ function ParticlesCanvas() {
 }
 
 /* ============================================================
+   响应式断点 hook
+   ============================================================ */
+function useViewport() {
+  const [vw, setVw] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1280);
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return vw;
+}
+
+/* ============================================================
    HeroBackground 主组件
-   旧版真实背景图 + Canvas 粒子 + 科技线路 + 渐变遮罩
+   柳树妈妈线描轮廓（右侧融入，无硬边界）+ 粒子 + 线路 + 渐变遮罩
    ============================================================ */
 export default function HeroBackground() {
+  const vw = useViewport();
+  const isMobile = vw < 768;
+  const isTablet = vw >= 768 && vw < 1200;
+
+  // 轮廓图透明度
+  const mamaOpacity = isMobile ? 0.12 : isTablet ? 0.2 : 0.28;
+
   return (
     <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      {/* z-0: 旧版真实背景图 — 全屏覆盖 */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+      {/* z-0: 柳树妈妈线描轮廓 — 右侧融入，mask 淡出消除硬边 */}
+      <div
+        style={{
+          position: 'absolute',
+          top: isMobile ? '8%' : '-2%',
+          right: isMobile ? '-15%' : '-3%',
+          height: isMobile ? '85%' : '105%',
+          width: 'auto',
+          zIndex: 0,
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 40%)',
+          maskImage: 'linear-gradient(to right, transparent 0%, black 40%)',
+          opacity: mamaOpacity,
+          pointerEvents: 'none',
+        }}
+      >
         <img
-          src="/hero-bg-legacy.jpg"
+          src="/hero-liushu-mama.png"
           alt=""
           style={{
-            width: '100%',
             height: '100%',
-            objectFit: 'cover',
-            opacity: 0.45,
+            width: 'auto',
+            display: 'block',
           }}
         />
       </div>
 
-      {/* z-1: 科技线路 — 极淡 */}
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 1,
-        opacity: 0.25, pointerEvents: 'none',
-      }}>
-        <TechCircuitSVG />
-      </div>
+      {/* z-1: 科技线路 — 极淡，手机端隐藏 */}
+      {!isMobile && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1,
+          opacity: isTablet ? 0.1 : 0.15, pointerEvents: 'none',
+        }}>
+          <TechCircuitSVG />
+        </div>
+      )}
 
-      {/* z-2: 渐变遮罩 — 保证文字可读性 */}
+      {/* z-3: 渐变遮罩 — 左侧文字区压暗 */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 3,
-        background: 'linear-gradient(to bottom, rgba(8,8,12,0.2) 0%, rgba(8,8,12,0.6) 60%, var(--bg) 100%)',
+        background: [
+          'linear-gradient(to bottom, rgba(8,8,12,0.55) 0%, rgba(8,8,12,0.25) 40%, rgba(8,8,12,0.5) 80%, var(--bg) 100%)',
+          isMobile
+            ? 'linear-gradient(180deg, rgba(8,8,12,0.5) 0%, rgba(8,8,12,0.15) 50%, rgba(8,8,12,0.4) 100%)'
+            : 'linear-gradient(100deg, rgba(8,8,12,0.7) 0%, rgba(8,8,12,0.35) 40%, rgba(8,8,12,0.05) 70%, rgba(8,8,12,0.15) 100%)',
+        ].join(', '),
         pointerEvents: 'none',
       }} />
 
       {/* z-4: Canvas 粒子 */}
-      <ParticlesCanvas />
+      <ParticlesCanvas reduceMotion={isMobile} />
     </div>
   );
 }

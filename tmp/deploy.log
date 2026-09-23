@@ -1,0 +1,31 @@
+﻿node.exe : npm warn exec The following package was not found and will be installed: wrangler@4.137.0
+所在位置 行:1 字符: 1
++ & "C:\Users\adday\AppData\Local\DoubaoWork\User Data\sandbox_runtime\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm warn exec T...rangler@4.137.0:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch r
+equests.[0m
+
+
+
+ ⛅️ wrangler 4.137.0
+────────────────────
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mWarning: Your working directory is a git repo and has uncommitted chan
+ges[0m
+
+  To silence this warning, pass in --commit-dirty=true
+
+
+✨ Compiled Worker successfully
+Uploading... (9/31)
+Uploading... (17/31)
+Uploading... (24/31)
+Uploading... (31/31)
+✨ Success! Uploaded 22 files (9 already uploaded) (2.89 sec)
+
+✨ Uploading _redirects
+✨ Uploading Functions bundle
+🌎 Deploying...
+✨ Deployment complete! Take a peek over at https://2cfb5e51.feiyi-4zu.pages.dev

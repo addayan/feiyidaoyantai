@@ -1,29 +1,32 @@
 :root {
-  /* 色彩系统 */
-  --bg-primary: #0a0e1a;
-  --bg-secondary: #111827;
-  --bg-card: #1a1f35;
-  --bg-card-hover: #222845;
-  --bg-input: #0f1525;
-  --bg-sidebar: #0d1220;
+  /* 色彩系统 — 暖棕黑暗房风 */
+  --bg-primary: #12100e;
+  --bg-secondary: #1a1612;
+  --bg-card: #1e1a15;
+  --bg-card-hover: #2a241c;
+  --bg-input: #161310;
+  --bg-sidebar: #14110e;
 
-  --gold: #d4a853;
-  --gold-hover: #e8be6a;
-  --gold-dim: rgba(212, 168, 83, 0.15);
-  --gold-glow: rgba(212, 168, 83, 0.3);
+  --gold: #c9a84c;
+  --gold-hover: #ddb968;
+  --gold-dim: rgba(201, 168, 76, 0.12);
+  --gold-glow: rgba(201, 168, 76, 0.25);
+
+  --cinnabar: #b83a2a;
+  --cinnabar-dim: rgba(184, 58, 42, 0.15);
 
   --teal: #2dd4bf;
-  --teal-dim: rgba(45, 212, 191, 0.15);
+  --teal-dim: rgba(45, 212, 191, 0.12);
   --teal-hover: #5eead4;
 
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-gold: #d4a853;
+  --text-primary: #f0e6d2;
+  --text-secondary: #9a8e7c;
+  --text-muted: #6b6154;
+  --text-gold: #c9a84c;
 
-  --border: rgba(255, 255, 255, 0.08);
-  --border-gold: rgba(212, 168, 83, 0.3);
-  --border-hover: rgba(255, 255, 255, 0.15);
+  --border: rgba(240, 230, 210, 0.07);
+  --border-gold: rgba(201, 168, 76, 0.3);
+  --border-hover: rgba(240, 230, 210, 0.14);
 
   --success: #34d399;
   --warning: #fbbf24;

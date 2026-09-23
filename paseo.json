@@ -1,0 +1,24 @@
+{
+  "worktree": {
+    "setup": "npm install"
+  },
+  "scripts": {
+    "dev": {
+      "command": "npm run dev:all"
+    },
+    "build": {
+      "command": "npm run build"
+    },
+    "check": {
+      "command": "npm run build"
+    }
+  },
+  "metadataGeneration": {
+    "branchName": {
+      "instructions": "功能用 feat/，修复用 fix/"
+    },
+    "commitMessage": {
+      "instructions": "Conventional Commits"
+    }
+  }
+}

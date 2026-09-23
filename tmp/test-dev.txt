@@ -1,0 +1,3 @@
+﻿前端首页: HTTP 200
+代理后health: HTTP 200 {"ok":true,"service":"辽韵 AI 导演台 AI 后端","modelConfigured":true,"modelId":"agnes-2.5-flash"}
+局域网首页: HTTP 200

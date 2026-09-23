@@ -1,0 +1,26 @@
+{
+  "pdfPages": 8,
+  "pdfBytes": 2231658,
+  "a4": true,
+  "pdfPath": "submission/辽韵AI导演台-医巫闾山满族剪纸.pdf",
+  "htmlPath": "submission/competition-report.html",
+  "screenshots": 6,
+  "screenshotsFinal": [
+    "01-首页.png",
+    "02-创作入口.png",
+    "03-导演台总览.png",
+    "04-8镜头.png",
+    "05-单镜头Prompt.png",
+    "06-文化表达检查.png"
+  ],
+  "build": "passed",
+  "deploy": "passed",
+  "deployUrl": "https://feiyi.hao1234.top/",
+  "fixedCaseRoute": "/director/yiwulvshan-paper-cutting?mode=example",
+  "fixedCaseVerified": true,
+  "visualReview": "8 pages rendered & reviewed; A4 100% readable titles; screenshot text legible; no 8-9pt mass small text; single focus per page; not overcrowded / not hollow; red thread across 8 pages; unified style; not Word/PPT/requirements-doc style",
+  "anonymousCheck": "passed; no names, schools, TRAE/Codex/WorkBuddy/Doubao brands, old competition info, watermarks in PDF/HTML/site",
+  "oldVideo": "not used; all visuals re-created (original SVG + fresh product screenshots)",
+  "officialSource": "https://www.ihchina.cn/project_details/13927.html",
+  "verifiedAt": "2026-09-23"
+}

@@ -1,0 +1,2 @@
+﻿首页: HTTP 200, 长度 975
+API health: HTTP 200 {"ok":true,"service":"è¾½éµ AI å¯¼æ¼å° AI åç«¯ (Pages Functions)","modelConfigured":true,"modelId":"deepseek-v4-pro","source":"kv-or-env"}

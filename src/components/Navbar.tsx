@@ -30,9 +30,10 @@ export default function Navbar() {
         left: 0,
         right: 0,
         height: 'var(--nav-height)',
-        background: 'rgba(10, 14, 26, 0.85)',
+        background: 'rgba(18, 16, 14, 0.85)',
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border)',
+        boxShadow: '0 1px 0 rgba(201,168,76,.15)',
         zIndex: 1000,
       }}
     >
