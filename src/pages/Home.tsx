@@ -1,19 +1,23 @@
 import { useNavigate } from 'react-router-dom';
+import HeroBackground from '../components/HeroBackground';
 
 export default function Home() {
   const navigate = useNavigate();
   return <div className="page">
-    <section className="home-hero" style={{ maxWidth: 1200, margin: '0 auto', padding: '68px 32px 42px' }}>
-      <div style={{ color: 'var(--gold)', letterSpacing: 5, fontSize: 13, marginBottom: 20 }}>辽宁非遗 · 数字影像创新</div>
-      <h1 className="hero-title" style={{ fontSize: 62, lineHeight: 1.15, marginBottom: 14, color: '#f5ead3' }}>辽韵 AI 导演台</h1>
-      <h2 className="hero-subtitle" style={{ fontSize: 24, color: 'var(--gold)', fontWeight: 400, marginBottom: 22 }}>辽宁非遗数字影像创作系统</h2>
-      <p style={{ fontSize: 19, marginBottom: 12 }}>从一张剪纸，到一个故事，再到一组可以生成的电影镜头。</p>
-      <p style={{ color: 'var(--text-secondary)', lineHeight: 1.9, maxWidth: 780 }}>以辽宁非遗为文化基础，AI 辅助完成故事、角色、场景、分镜、<br />图片提示词、视频提示词与文化表达检查。</p>
-      <div style={{ display: 'flex', gap: 16, marginTop: 28, flexWrap: 'wrap' }}>
-        <button className="btn btn-primary" onClick={() => navigate('/liaoning-case')}>体验《一剪见闾山》 →</button>
-        <button className="btn btn-secondary" onClick={() => navigate('/create')}>开始自己的非遗创作</button>
-      </div>
-    </section>
+    <div style={{ position: 'relative' }}>
+      <HeroBackground />
+      <section className="home-hero" style={{ position: 'relative', zIndex: 1, maxWidth: 1200, margin: '0 auto', padding: '88px 32px 56px' }}>
+        <div style={{ color: 'var(--gold)', letterSpacing: 5, fontSize: 13, marginBottom: 20 }}>辽宁非遗 · 数字影像创新</div>
+        <h1 className="hero-title" style={{ fontSize: 62, lineHeight: 1.15, marginBottom: 14, color: '#f5ead3' }}>辽韵 AI 导演台</h1>
+        <h2 className="hero-subtitle" style={{ fontSize: 24, color: 'var(--gold)', fontWeight: 400, marginBottom: 22 }}>辽宁非遗数字影像创作系统</h2>
+        <p style={{ fontSize: 19, marginBottom: 12 }}>从一张剪纸，到一个故事，再到一组可以生成的电影镜头。</p>
+        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.9, maxWidth: 780 }}>以辽宁非遗为文化基础，AI 辅助完成故事、角色、场景、分镜、<br />图片提示词、视频提示词与文化表达检查。</p>
+        <div style={{ display: 'flex', gap: 16, marginTop: 28, flexWrap: 'wrap' }}>
+          <button className="btn btn-primary" onClick={() => navigate('/liaoning-case')}>体验《一剪见闾山》 →</button>
+          <button className="btn btn-secondary" onClick={() => navigate('/create')}>开始自己的非遗创作</button>
+        </div>
+      </section>
+    </div>
     <section style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px 48px' }}>
       <div className="card case-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', padding: 0, overflow: 'hidden', borderColor: 'rgba(212,168,83,.4)', background: 'linear-gradient(110deg,#351924,#111b2c)' }}>
         <div style={{ padding: 32, borderRight: '1px solid rgba(212,168,83,.2)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
