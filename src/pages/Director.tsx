@@ -1189,20 +1189,19 @@ export default function Director() {
                             width: 120,
                             height: 72,
                             borderRadius: 'var(--radius-sm)',
-                            background: selectedShots.has(shot.id) ? 'rgba(139,92,246,0.06)' : 'rgba(255,255,255,0.03)',
-                            border: selectedShots.has(shot.id) ? '1px dashed rgba(139,92,246,0.5)' : '1px dashed var(--border)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 2,
-                            cursor: 'default',
+                            border: selectedShots.has(shot.id) ? '1px solid rgba(201,168,76,0.5)' : '1px solid rgba(201,168,76,0.15)',
                             overflow: 'hidden',
-                            transition: 'all 0.15s',
+                            position: 'relative',
                           }}
                         >
-                          <span style={{ fontSize: 22, opacity: 0.3 }}>🎬</span>
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)', opacity: 0.5 }}>首帧预览</span>
+                          {isExample && i < 8 ? (
+                            <img src={"/liaoyun-assets/shot0" + (i + 1) + ".jpg"} alt={shot.scene} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <>
+                              <span style={{ fontSize: 22, opacity: 0.3 }}>🎬</span>
+                              <span style={{ fontSize: 10, color: 'var(--text-muted)', opacity: 0.5 }}>首帧预览</span>
+                            </>
+                          )}
                         </div>
                         {/* 批量复选框 */}
                         <input

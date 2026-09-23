@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { HeritageType, Purpose, Duration, VisualStyle, Project } from '../types';
 import type { GenerationMeta } from '../types';
 import { generateMockProjectData } from '../data/mockGenerator';
+import { liaoningData } from '../data/liaoningCase';
 import { createProject } from '../store/projectStore';
 import { useAIHealth } from '../hooks/useAIHealth';
 import { generateStoryboard, type AIError } from '../api/ai';
@@ -258,13 +259,10 @@ export default function Create() {
           setGenerating(false);
 
           try {
-            const data = generateMockProjectData({
-              heritageType,
-              topic: topic.trim(),
-              purpose,
-              duration,
-              style,
-            });
+            // 医巫闾山满族剪纸直接用完整案例数据
+            const data = heritageType === '医巫闾山满族剪纸'
+              ? { ...liaoningData, heritageType: '医巫闾山满族剪纸' }
+              : generateMockProjectData({ heritageType, topic: topic.trim(), purpose, duration, style });
 
             setCompletionStats(computeCompletionStats(data));
             finalizeProject(data, { mode: 'quick' });
