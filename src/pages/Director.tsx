@@ -1194,8 +1194,8 @@ export default function Director() {
                             position: 'relative',
                           }}
                         >
-                          {isExample && i < 8 ? (
-                            <img src={"/liaoyun-assets/shot0" + (i + 1) + ".jpg"} alt={shot.scene} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          {shot.referenceImage ? (
+                            <img src={shot.referenceImage} alt={shot.scene} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
                             <>
                               <span style={{ fontSize: 22, opacity: 0.3 }}>🎬</span>

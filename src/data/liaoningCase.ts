@@ -33,12 +33,75 @@ export const liaoningShots: Shot[] = frames.map((f, i) => {
     videoPrompt: `${f[10]}秒，24fps，16:9。${f[4]} ${visual}${anchor}`,
     negativePrompt: '龙凤混搭、宫殿、灯笼堆砌、古装、仙侠、怪物、虚构仪式、手指畸形、结构闪烁、乱码、水印、真实人物肖像',
     generatabilityScore: [94, 92, 82, 88, 90, 84, 91, 93][i],
+    referenceImage: i < 8 ? "/liaoyun-assets/shot0" + (i + 1) + ".jpg" : undefined,
     generatabilityChecks: [
       { label: '动作与时长', status: i === 2 || i === 5 ? 'warn' : 'pass', detail: f[4] },
       { label: '制作边界', status: 'pass', detail: '评分为创作阶段人工预估，尚未进行图片或视频生成实测。字幕与界面由后期合成。' },
     ],
   };
 });
+
+// 追加4个文字镜头（无参考图，约12个基础分镜）
+const extraShots: Shot[] = [
+  {
+    id: 'liaoning-shot-9', scene: '翻查资料', description: '青年在电脑前查阅医巫闾山满族剪纸的官方资料与历史照片，屏幕光线映在脸上。',
+    shotSize: '中景', camera: '固定', duration: '8秒',
+    cameraAngle: '过肩', composition: '层次构图', lighting: '暖光',
+    firstFramePrompt: '过肩视角，青年坐在电脑前，屏幕显示非遗资料页面，暖光映脸。写实电影风格，16:9。',
+    lastFramePrompt: '青年点头，屏幕停在资料页。',
+    videoPrompt: '8秒，24fps，16:9。固定过肩镜头，手部轻微翻页动作。写实电影风格。',
+    negativePrompt: '龙凤混搭、宫殿、古装、仙侠、乱码、水印',
+    generatabilityScore: 86,
+    generatabilityChecks: [
+      { label: '动作与时长', status: 'pass', detail: '固定过肩，动作简单' },
+      { label: '制作边界', status: 'pass', detail: '屏幕内容后期合成' },
+    ],
+  },
+  {
+    id: 'liaoning-shot-10', scene: '纹样与山林', description: '剪纸的花鸟纹样与远处山林晨雾叠化，传统图案与自然景观在视觉上呼应。',
+    shotSize: '近景', camera: '移', duration: '8秒',
+    cameraAngle: '平视', composition: '框架构图', lighting: '柔光',
+    firstFramePrompt: '剪纸花鸟纹样占据前景，远处山林晨雾虚化，暖金色柔光。写实电影风格，16:9。',
+    lastFramePrompt: '纹样与山林叠化完成，画面柔和。',
+    videoPrompt: '8秒，24fps，16:9。缓慢横移，剪纸纹样与山林叠化。写实电影风格。',
+    negativePrompt: '龙凤混搭、宫殿、灯笼堆砌、古装、仙侠',
+    generatabilityScore: 87,
+    generatabilityChecks: [
+      { label: '动作与时长', status: 'pass', detail: '叠化效果，动作简单' },
+      { label: '制作边界', status: 'pass', detail: '叠化后期合成' },
+    ],
+  },
+  {
+    id: 'liaoning-shot-11', scene: '导出与整理', description: '青年在电脑上整理故事板与提示词，文件整齐排列，点击导出按钮。',
+    shotSize: '中景', camera: '固定', duration: '7秒',
+    cameraAngle: '过肩', composition: '层次构图', lighting: '暖光',
+    firstFramePrompt: '过肩视角，电脑屏幕显示故事板与提示词列表，青年手指点击导出。暖光。写实电影风格，16:9。',
+    lastFramePrompt: '导出完成，文件列表整齐。',
+    videoPrompt: '7秒，24fps，16:9。固定过肩，手部点击动作。写实电影风格。',
+    negativePrompt: '乱码、水印、龙凤混搭、宫殿',
+    generatabilityScore: 85,
+    generatabilityChecks: [
+      { label: '动作与时长', status: 'pass', detail: '固定镜头，动作简单' },
+      { label: '制作边界', status: 'pass', detail: '界面后期合成' },
+    ],
+  },
+  {
+    id: 'liaoning-shot-12', scene: '窗边回望', description: '傍晚，青年站在窗前，红纸贴在玻璃上，窗外是辽宁山林暮色。他没有说话，只是看着。',
+    shotSize: '全景', camera: '拉', duration: '10秒',
+    cameraAngle: '平视', composition: '框架构图', lighting: '自然光',
+    firstFramePrompt: '全景，窗边红纸贴在玻璃上，青年侧身站立，窗外辽宁山林暮色。写实电影风格，16:9。',
+    lastFramePrompt: '镜头缓慢拉远，红纸与青年都变小，山林暮色占据画面。',
+    videoPrompt: '10秒，24fps，16:9。缓慢拉远，红纸轻摆，青年站立不动。写实电影风格。',
+    negativePrompt: '龙凤混搭、宫殿、灯笼堆砌、古装、仙侠',
+    generatabilityScore: 90,
+    generatabilityChecks: [
+      { label: '动作与时长', status: 'pass', detail: '缓慢拉远，动作简单' },
+      { label: '制作边界', status: 'pass', detail: '固定场景，无需复杂生成' },
+    ],
+  },
+];
+
+liaoningShots.push(...extraShots);
 
 export const liaoningData: ProjectData = {
   title: '《一剪见闾山》', tagline: '从观看者，到记录者。让新的数字工具帮助年轻人重新看见传统。',

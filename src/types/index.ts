@@ -131,6 +131,8 @@ export interface Shot {
   negativePrompt?: string;
   generatabilityScore: number;
   generatabilityChecks: GeneratabilityCheck[];
+  // 案例预设参考画面（已配图关键帧）
+  referenceImage?: string;
 }
 
 // ===== 声音设计 =====

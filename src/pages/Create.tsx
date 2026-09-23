@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { HeritageType, Purpose, Duration, VisualStyle, Project } from '../types';
 import type { GenerationMeta } from '../types';
 import { generateMockProjectData } from '../data/mockGenerator';
@@ -113,6 +113,8 @@ function SegmentedControl({
    ============================================================ */
 export default function Create() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const continueCase = searchParams.get('continueCase');
 
   // AI 健康检查
   const { modelConfigured, loading: healthLoading } = useAIHealth();
@@ -417,6 +419,17 @@ export default function Create() {
         onDismiss={handleDismiss}
         completionStats={completionStats}
       />
+
+      {/* 延续案例提示 */}
+      {continueCase && (
+        <div className="card" style={{ marginBottom: 24, borderLeft: "3px solid var(--gold)", padding: 16 }}>
+          <strong style={{ color: "var(--gold)" }}>正在延续案例：《一剪见闾山》</strong>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 8, lineHeight: 1.6 }}>
+            当前已有：故事、角色、场景、12个基础分镜、8张参考画面。<br/>
+            选择下方参数后点击"生成故事、分镜与提示词"，将基于现有案例继续创作后续分镜。
+          </p>
+        </div>
+      )}
 
       {/* AI 错误信息 - 覆盖在 overlay 之上 */}
       {showOverlay && done && error && aiError && (
