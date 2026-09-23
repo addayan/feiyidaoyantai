@@ -1,7 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EmptyState from '../components/EmptyState';
-import { getAllProjects, deleteProject, renameProject, createProject } from '../store/projectStore';
+import {
+  getAllProjects, deleteProject, renameProject,
+  exportAllProjects, exportSingleProject, importProjects,
+} from '../store/projectStore';
 import type { Project } from '../types';
 
 export default function MyProjects() {
@@ -20,39 +23,62 @@ export default function MyProjects() {
     setTimeout(() => setToast(null), 3000);
   }, []);
 
-  // 导入项目 JSON（V2.2.0 新增）
+  // 导入项目 JSON：兼容单项目对象与全量备份两种格式，按 id 去重
   const handleFileImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const parsed = JSON.parse(event.target?.result as string);
-        if (!parsed.data || !parsed.data.title) {
-          showToast('导入失败：文件格式不正确');
+        const result = importProjects(String(event.target?.result || ''));
+        if (result.title && result.id) {
+          showToast(`项目「${result.title}」导入成功`);
+          refresh();
+          setTimeout(() => navigate('/director/' + result.id), 800);
           return;
         }
-        const now = new Date().toISOString();
-        const newProject: Project = {
-          ...parsed,
-          id: `proj-${Date.now()}`,
-          slug: `proj-${Date.now()}`,
-          createdAt: now,
-          updatedAt: now,
-          isExample: false,
-        };
-        delete (newProject as any)._exportMeta;
-        createProject(newProject);
-        showToast(`项目「${newProject.data.title}」导入成功`);
+        showToast(`导入完成：新增 ${result.imported} 个，跳过 ${result.skipped} 个`);
         refresh();
-        setTimeout(() => navigate('/director/' + newProject.id), 800);
-      } catch {
-        showToast('导入失败：JSON 解析错误');
+      } catch (err) {
+        showToast(`导入失败：${err instanceof Error ? err.message : 'JSON 解析错误'}`);
       }
     };
     reader.readAsText(file);
     e.target.value = '';
   }, [navigate, showToast]);
+
+  // 导出全部项目（全量备份）
+  const handleExportAll = useCallback(() => {
+    const json = exportAllProjects();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    a.href = url;
+    a.download = `辽韵AI导演台项目备份-${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('已导出全部项目备份');
+  }, [showToast]);
+
+  // 导出单个项目
+  const handleExportOne = useCallback((id: string) => {
+    const json = exportSingleProject(id);
+    if (!json) {
+      showToast('导出失败：项目不存在');
+      return;
+    }
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `项目-${id}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('已导出项目');
+  }, [showToast]);
+
+
 
   useEffect(() => {
     refresh();
@@ -119,7 +145,10 @@ export default function MyProjects() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <p className="page-subtitle" style={{ margin: 0 }}>共 {projects.length} 个项目</p>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-sm btn-secondary" onClick={() => fileInputRef.current?.click()} title="从 JSON 文件导入项目">
+            <button className="btn btn-sm btn-secondary" onClick={handleExportAll} title="将所有项目导出为 JSON 备份文件">
+              导出全部
+            </button>
+            <button className="btn btn-sm btn-secondary" onClick={() => fileInputRef.current?.click()} title="从 JSON 文件导入项目（支持单项目与全量备份）">
               导入项目
             </button>
             <input
@@ -180,7 +209,7 @@ export default function MyProjects() {
                   <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>{p.data.title}</h3>
                 )}
 
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
+                <p className="project-card-tagline" style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
                   {p.data.tagline}
                 </p>
                 <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
@@ -197,6 +226,14 @@ export default function MyProjects() {
               }}>
                 <span>创建：{new Date(p.createdAt).toLocaleDateString('zh-CN')}</span>
                 <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    className="btn btn-sm btn-ghost"
+                    style={{ padding: '4px 8px', fontSize: 12 }}
+                    onClick={(e) => { e.stopPropagation(); handleExportOne(p.id); }}
+                    title="导出该项目 JSON"
+                  >
+                    导出
+                  </button>
                   <button
                     className="btn btn-sm btn-ghost"
                     style={{ padding: '4px 8px', fontSize: 12 }}

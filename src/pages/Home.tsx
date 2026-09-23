@@ -1,194 +1,43 @@
 import { useNavigate } from 'react-router-dom';
-import CaseCard from '../components/CaseCard';
-import HeroBackground from '../components/HeroBackground';
-import { CASE_SUMMARIES } from '../data/examples';
-
-const FEATURES = [
-  {
-    icon: '🎬',
-    title: '非遗专用创作流程',
-    desc: '从主题到分镜到提示词，专为非遗短片设计的完整 AI 创作工作流，避免猎奇化与符号化。',
-  },
-  {
-    icon: '🎯',
-    title: 'AI 分镜导演台',
-    desc: '8 镜头可视化分镜编辑，每个镜头包含首帧/尾帧/视频提示词，支持单镜头重新生成与 AI 优化。',
-  },
-  {
-    icon: '✅',
-    title: '文化表达与可生成性检查',
-    desc: '自动检查文化表达准确性、猎奇化风险，并评估 AI 视频可生成性，让创意真正落地。',
-  },
-];
+import { LIAONING_URL } from '../data/liaoningCase';
 
 export default function Home() {
   const navigate = useNavigate();
-
-  return (
-    <div className="page">
-      {/* Hero — 非遗 + AI 融合视觉 */}
-      <section style={{
-        minHeight: 700,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        padding: '80px 24px 48px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Hero 背景 — 面具 + 科技线路 + 粒子 + 光晕 */}
-        <HeroBackground />
-
-        {/* Hero 内容 — 位于遮罩层之上 */}
-        <div className="animate-fade-in" style={{ position: 'relative', zIndex: 10, maxWidth: 640 }}>
-          <div style={{
-            display: 'inline-block',
-            padding: '4px 16px',
-            borderRadius: 20,
-            background: 'rgba(212,168,83,0.12)',
-            border: '1px solid rgba(212,168,83,0.25)',
-            color: 'var(--gold)',
-            fontSize: 13,
-            fontWeight: 500,
-            marginBottom: 28,
-            backdropFilter: 'blur(8px)',
-          }}>
-            TRAE AI 创造力大赛参赛作品
-          </div>
-
-          <h1 style={{
-            fontSize: 58,
-            fontWeight: 800,
-            lineHeight: 1.12,
-            marginBottom: 14,
-            background: 'linear-gradient(135deg, var(--text-primary) 20%, var(--gold) 80%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            textShadow: 'none',
-            filter: 'drop-shadow(0 2px 12px rgba(212,168,83,0.15))',
-          }}>
-            非遗影像工坊
-          </h1>
-
-          <p style={{
-            fontSize: 24,
-            fontWeight: 600,
-            color: 'var(--gold)',
-            marginBottom: 20,
-            letterSpacing: 3,
-            textShadow: '0 0 20px rgba(212,168,83,0.2)',
-          }}>
-            AI 非遗短片导演台
-          </p>
-
-          <p style={{
-            fontSize: 16,
-            color: 'rgba(241,245,249,0.78)',
-            maxWidth: 560,
-            margin: '0 auto 44px',
-            lineHeight: 1.75,
-          }}>
-            输入一个中国非遗主题，让 AI 帮你完成故事、角色、场景、<br />
-            分镜、提示词和文化表达检查。
-          </p>
-
-          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              className="btn btn-primary"
-              style={{ padding: '14px 44px', fontSize: 17, fontWeight: 600 }}
-              onClick={() => navigate('/create')}
-            >
-              开始 AI 创作
-            </button>
-            <button
-              className="btn btn-secondary"
-              style={{ padding: '14px 40px', fontSize: 16 }}
-              onClick={() => navigate('/cases')}
-            >
-              快速体验案例
-            </button>
-          </div>
+  return <div className="page">
+    <section className="home-hero" style={{ maxWidth: 1200, margin: '0 auto', padding: '68px 32px 42px' }}>
+      <div style={{ color: 'var(--gold)', letterSpacing: 5, fontSize: 13, marginBottom: 20 }}>辽宁非遗 · 数字影像创新</div>
+      <h1 className="hero-title" style={{ fontSize: 62, lineHeight: 1.15, marginBottom: 14, color: '#f5ead3' }}>辽韵 AI 导演台</h1>
+      <h2 className="hero-subtitle" style={{ fontSize: 24, color: 'var(--gold)', fontWeight: 400, marginBottom: 22 }}>辽宁非遗数字影像创作系统</h2>
+      <p style={{ fontSize: 19, marginBottom: 12 }}>从一张剪纸，到一个故事，再到一组可以生成的电影镜头。</p>
+      <p style={{ color: 'var(--text-secondary)', lineHeight: 1.9, maxWidth: 780 }}>以辽宁非遗为文化基础，AI 辅助完成故事、角色、场景、分镜、<br />图片提示词、视频提示词与文化表达检查。</p>
+      <div style={{ display: 'flex', gap: 16, marginTop: 28, flexWrap: 'wrap' }}>
+        <button className="btn btn-primary" onClick={() => navigate(LIAONING_URL)}>体验《一剪见闾山》 →</button>
+        <button className="btn btn-secondary" onClick={() => navigate('/create')}>开始自己的非遗创作</button>
+      </div>
+    </section>
+    <section style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px 48px' }}>
+      <div className="card case-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', padding: 0, overflow: 'hidden', borderColor: 'rgba(212,168,83,.4)', background: 'linear-gradient(110deg,#351924,#111b2c)' }}>
+        <div style={{ padding: 32, borderRight: '1px solid rgba(212,168,83,.2)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <span style={{ color: 'var(--gold)', fontSize: 12, letterSpacing: 2 }}>国家级非物质文化遗产</span>
+          <div style={{ fontSize: 76, fontWeight: 800, color: '#ee7877', lineHeight: 1.3 }}>剪纸</div>
+          <div style={{ fontSize: 18 }}>医巫闾山满族剪纸</div>
+          <p style={{ color: 'var(--text-secondary)', marginTop: 12 }}>辽宁 · 锦州　/　Ⅶ-16</p>
         </div>
-      </section>
-
-      {/* 精选案例 */}
-      <section style={{ maxWidth: 'var(--container-max)', margin: '0 auto', padding: '40px 24px 80px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-          <div>
-            <h2 style={{ fontSize: 26, fontWeight: 700, marginBottom: 6 }}>精选案例</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>点击查看完整 AI 导演台</p>
-          </div>
-          <button className="btn btn-ghost" onClick={() => navigate('/cases')}>
-            查看全部 →
-          </button>
+        <div style={{ padding: '30px 38px' }}>
+          <span style={{ color: 'var(--gold)', fontSize: 12 }}>本次主案例 · 8 镜头完整前期创作</span>
+          <h2 style={{ fontSize: 34, margin: '10px 0' }}>《一剪见闾山》</h2>
+          <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: 18 }}>从一张纸开始，让传统纹样、山林记忆与年轻人的视角，<br />转化成一部 AI 非遗短片。</p>
+          <button className="btn btn-primary" onClick={() => navigate(LIAONING_URL)}>进入完整 AI 导演台 →</button>
         </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: 20,
-        }}>
-          {CASE_SUMMARIES.map((c, i) => (
-            <CaseCard key={c.slug} data={c} index={i} />
-          ))}
-        </div>
-      </section>
-
-      {/* 产品优势 */}
-      <section style={{
-        maxWidth: 'var(--container-max)',
-        margin: '0 auto',
-        padding: '40px 24px 100px',
-      }}>
-        <h2 style={{ fontSize: 26, fontWeight: 700, textAlign: 'center', marginBottom: 48 }}>
-          为什么选择非遗影像工坊
-        </h2>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: 24,
-        }}>
-          {FEATURES.map((f, i) => (
-            <div
-              key={i}
-              className="card animate-fade-in"
-              style={{
-                animationDelay: `${i * 0.15}s`,
-                opacity: 0,
-                textAlign: 'center',
-                padding: '36px 28px',
-              }}
-            >
-              <div style={{
-                fontSize: 40,
-                marginBottom: 16,
-                display: 'inline-block',
-              }}>
-                {f.icon}
-              </div>
-              <h3 style={{
-                fontSize: 18,
-                fontWeight: 600,
-                marginBottom: 10,
-                color: 'var(--text-primary)',
-              }}>
-                {f.title}
-              </h3>
-              <p style={{
-                fontSize: 14,
-                color: 'var(--text-secondary)',
-                lineHeight: 1.7,
-              }}>
-                {f.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
+      </div>
+      <p style={{ marginTop: 24, color: 'var(--text-muted)', textAlign: 'center', fontSize: 14 }}>让不会编剧、不会分镜、不会写 AI 提示词的人，也能完成一部辽宁非遗短片的前期创作。</p>
+    </section>
+    <section className="steps-grid" style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 32px 64px', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+      {[
+        ['01 / 理解文化', '文化事实与创作设定分开呈现，让创意有据可依。'],
+        ['02 / 组织镜头', '故事、角色、场景与8个镜头连接成可执行的创作方案。'],
+        ['03 / 继续生产', '首尾帧与视频提示词支持复制、编辑和导出，衔接后续制作。'],
+      ].map(([title, text]) => <div key={title} className="card"><h3 style={{ color: 'var(--gold)', marginBottom: 12 }}>{title}</h3><p style={{ color: 'var(--text-secondary)', lineHeight: 1.8 }}>{text}</p></div>)}
+    </section>
+  </div>;
 }

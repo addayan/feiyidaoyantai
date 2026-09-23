@@ -27,8 +27,8 @@ export function generateMockProjectData(params: GenerateParams): ProjectData {
   const randomTitle = typeTitles[Math.floor(Math.random() * typeTitles.length)];
   const title = `${heritageType}《${randomTitle}》`;
 
-  // 根据主题生成一句话
-  const tagline = topic || `一段关于${heritageType}的动人故事，在传统与现代之间寻找传承的意义。`;
+  // 一句话创意（不直接用 topic——topic 是给 AI 的长段创作上下文，不适合做卡片摘要）
+  const tagline = `一段关于${heritageType}的动人故事，在传统与现代之间寻找传承的意义。`;
 
   // 故事梗概
   const storySynopsis = `这是一个关于${heritageType}的短片创作方案。${topic ? '核心创意：' + topic + '。' : ''}故事围绕${heritageType}的技艺与传承展开，展现非遗文化在当代的生命力与情感价值。`;
@@ -158,8 +158,8 @@ export function generateMockProjectData(params: GenerateParams): ProjectData {
 
   // 发布文案
   const socialPosts = {
-    douyin: `用 AI 做了一个关于${heritageType}的短片！从创意到分镜再到提示词，全部由 AI 辅助完成。#非遗影像工坊 #${heritageType} #AI短片 #传统文化`,
-    xiaohongshu: `✨ 用 AI 做了一部${heritageType}短片\n\n从创意到分镜到提示词，AI 帮我完成了全部前期策划。\n\n这个故事讲的是：${topic || '传统与现代的交汇'}\n\n第一次用 AI 做非遗题材，才发现传统文化和 AI 结合可以这么有感觉。\n\n#非遗影像工坊 #${heritageType} #AI创作 #非遗文化 #短片创作`,
+    douyin: `用 AI 做了一个关于${heritageType}的短片！从创意到分镜再到提示词，全部由 AI 辅助完成。#辽韵AI导演台 #${heritageType} #AI短片 #传统文化`,
+    xiaohongshu: `✨ 用 AI 做了一部${heritageType}短片\n\n从创意到分镜到提示词，AI 帮我完成了全部前期策划。\n\n这个故事讲的是：${topic || '传统与现代的交汇'}\n\n第一次用 AI 做非遗题材，才发现传统文化和 AI 结合可以这么有感觉。\n\n#辽韵AI导演台 #${heritageType} #AI创作 #非遗文化 #短片创作`,
   };
 
   return {

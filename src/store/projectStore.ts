@@ -138,3 +138,95 @@ export function addGenerationRecord(id: string, record: GenerationRecord): void 
   };
   persist(all);
 }
+
+/** 导出格式的元信息标记（导入时忽略） */
+export interface ExportMeta {
+  app: string;
+  version: string;
+  exportedAt: string;
+  count: number;
+}
+
+/**
+ * 导出全部项目（含元信息），返回可直接落盘的 JSON 字符串。
+ * 与单项目导出共用同一对象结构，导入时按 id 去重。
+ */
+export function exportAllProjects(): string {
+  const all = loadAll();
+  const meta: ExportMeta = {
+    app: '辽韵 AI 导演台',
+    version: '2.2',
+    exportedAt: new Date().toISOString(),
+    count: all.length,
+  };
+  return JSON.stringify({ _exportMeta: meta, projects: all }, null, 2);
+}
+
+/** 导出单个项目（与全量导出同构：projects 数组仅含一个元素） */
+export function exportSingleProject(id: string): string {
+  const p = getProject(id);
+  if (!p) return '';
+  return JSON.stringify({ projects: [p] }, null, 2);
+}
+
+/**
+ * 从导入文本解析并合并项目到本地存储。
+ * 兼容两种格式：单项目对象 {data:{title}} 或全量备份 {projects:[...]}。
+ * 去重规则：id 已存在则跳过（保留本地版本），新 id 追加。
+ * @returns { imported, skipped, title?, id? } 导入数 / 跳过数 / 单项目导入时返回标题与新项目 id
+ */
+export function importProjects(raw: string): { imported: number; skipped: number; title?: string; id?: string } {
+  const parsed: any = JSON.parse(raw);
+  let incoming: Project[];
+
+  if (Array.isArray(parsed?.projects)) {
+    incoming = parsed.projects as Project[];
+  } else if (parsed && typeof parsed === 'object' && parsed.data?.title) {
+    // 单个项目对象（历史导入格式）
+    incoming = [parsed as Project];
+  } else {
+    throw new Error('文件格式不正确：需要项目对象或全量备份');
+  }
+
+  const all = loadAll();
+  const existingIds = new Set(all.map(p => p.id));
+  let imported = 0;
+  let skipped = 0;
+  let firstId: string | undefined;
+
+  for (const rawItem of incoming) {
+    if (!rawItem || typeof rawItem !== 'object' || !rawItem.data?.title) {
+      skipped += 1;
+      continue;
+    }
+    if (existingIds.has(rawItem.id)) {
+      skipped += 1;
+      continue;
+    }
+    const now = new Date().toISOString();
+    const project: Project = {
+      ...rawItem,
+      id: rawItem.id || `proj-${Date.now()}`,
+      slug: rawItem.slug || rawItem.id || `proj-${Date.now()}`,
+      createdAt: rawItem.createdAt || now,
+      updatedAt: now,
+      isExample: false,
+    };
+    delete (project as any)._exportMeta;
+    all.push(project);
+    existingIds.add(project.id);
+    imported += 1;
+    if (firstId === undefined) firstId = project.id;
+  }
+
+  if (imported > 0) {
+    persist(all);
+  }
+
+  const firstTitle = incoming.length === 1 ? incoming[0]?.data?.title : undefined;
+  return {
+    imported, skipped,
+    title: imported > 0 && incoming.length === 1 ? firstTitle : undefined,
+    id: imported > 0 && incoming.length === 1 ? firstId : undefined,
+  };
+}

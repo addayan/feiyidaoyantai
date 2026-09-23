@@ -40,7 +40,7 @@ export default function HeritageDetail() {
         <div style={{ marginTop: 18, display: 'flex', justifyContent: 'space-between', gap: 24, alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div>
             <div style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 800 }}>{item.officialCategory}</div>
-            <h1 style={{ fontSize: 42, margin: '6px 0 0' }}>{item.name}</h1>
+            <h1 className="heritage-title" style={{ fontSize: 42, margin: '6px 0 0' }}>{item.name}</h1>
             <p style={{ maxWidth: 680, color: 'var(--text-secondary)', lineHeight: 1.8 }}>{item.summary}</p>
           </div>
           <Link className="btn btn-primary" to={`/create?heritage=${item.slug}`}>
@@ -48,7 +48,12 @@ export default function HeritageDetail() {
           </Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr .8fr', gap: 18, marginTop: 28 }}>
+    {item.officialName && <section className="card" style={{ marginTop: 24, lineHeight: 1.9 }}>
+          <strong>文化事实层 · {item.officialName}</strong><p>{item.designation} · {item.projectCode} · {item.announcedAt} · {item.region}</p>
+          <a href={item.sourceUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--gold)' }}>{item.sourceLabel} ↗</a><p style={{ fontSize: 12 }}>核验日期：{item.lastVerifiedAt}。以下 AI 创作档案属于创意建议，不是历史事实。</p>
+        </section>}
+        
+        <div className="heritage-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr .8fr', gap: 18, marginTop: 28 }}>
           <section className="card" style={{ padding: 22 }}>
             <h2 style={{ marginTop: 0 }}>AI 创作档案</h2>
 
@@ -104,8 +109,7 @@ export default function HeritageDetail() {
         </div>
 
         <div className="card" style={{ padding: 18, marginTop: 18, color: 'var(--text-muted)', fontSize: 12, lineHeight: 1.7 }}>
-          V3.0 Phase 1 当前展示的是“创作大类介绍”。后续具体国家级/省级项目详情页会单独展示项目编号、申报地区、
-          保护单位、官方介绍、资料来源和最后核验时间，并与本页的 AI 创作档案分层保存。
+          文化资料用于事实核验；AI 创作档案提供视觉和叙事建议。具体纹样与素材仍需在制作时核对来源和授权。
         </div>
       </div>
     </div>

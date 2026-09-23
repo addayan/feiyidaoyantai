@@ -1,4 +1,4 @@
-// ===== 非遗影像工坊 AI 后端入口 =====
+// ===== 辽韵 AI 导演台 AI 后端入口 =====
 
 import 'dotenv/config';
 import express from 'express';
@@ -60,8 +60,8 @@ if (hasFrontendBuild) {
     res.sendFile(path.join(STATIC_DIR, 'index.html'));
   });
 } else {
-  console.log('[非遗影像工坊] 未检测到前端构建产物 (dist/)，仅运行 API 服务');
-  console.log('[非遗影像工坊] 开发模式请使用: npm run dev:all');
+  console.log('[辽韵 AI 导演台] 未检测到前端构建产物 (dist/)，仅运行 API 服务');
+  console.log('[辽韵 AI 导演台] 开发模式请使用: npm run dev:all');
 }
 
 // ===== 全局错误处理 =====
@@ -72,11 +72,11 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 // ===== 启动 =====
 app.listen(PORT, () => {
-  console.log(`[非遗影像工坊] 启动成功，监听端口 ${PORT}`);
-  console.log(`[非遗影像工坊] 访问地址: http://localhost:${PORT}`);
-  console.log(`[非遗影像工坊] API Health: http://localhost:${PORT}/api/health`);
-  console.log(`[非遗影像工坊] 模型: ${getSafeModelId()}`);
+  console.log(`[辽韵 AI 导演台] 启动成功，监听端口 ${PORT}`);
+  console.log(`[辽韵 AI 导演台] 访问地址: http://localhost:${PORT}`);
+  console.log(`[辽韵 AI 导演台] API Health: http://localhost:${PORT}/api/health`);
+  console.log(`[辽韵 AI 导演台] 模型: ${getSafeModelId()}`);
   if (hasFrontendBuild) {
-    console.log(`[非遗影像工坊] 前端静态文件: ${STATIC_DIR}`);
+    console.log(`[辽韵 AI 导演台] 前端静态文件: ${STATIC_DIR}`);
   }
 });

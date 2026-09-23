@@ -363,6 +363,235 @@ input, select, textarea {
   transform: translateY(-2px);
 }
 
+/* ============================================================
+   导航栏（Navbar）
+   ============================================================ */
+.nav-inner {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.nav-title {
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 20%, var(--gold) 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 1px 8px rgba(212, 168, 83, 0.12));
+  white-space: nowrap;
+}
+
+.nav-badge {
+  font-size: 11px;
+  color: var(--gold);
+  border: 1px solid rgba(212, 168, 83, 0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+}
+
+.nav-link {
+  padding: 8px 13px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.nav-link[data-active='1'] {
+  font-weight: 600;
+  color: var(--gold);
+  background: var(--gold-dim);
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+}
+
+/* 汉堡按钮：默认隐藏（仅小屏显示） */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.nav-toggle-bar,
+.nav-toggle-bar::before,
+.nav-toggle-bar::after {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+  position: relative;
+}
+
+.nav-toggle-bar::before,
+.nav-toggle-bar::after {
+  content: '';
+  position: absolute;
+}
+
+.nav-toggle-bar::before { transform: translateY(-6px); }
+.nav-toggle-bar::after  { transform: translateY(6px); }
+
+.nav-toggle-bar.is-open {
+  background: transparent;
+}
+.nav-toggle-bar.is-open::before { transform: rotate(45deg); }
+.nav-toggle-bar.is-open::after  { transform: rotate(-45deg); }
+
+/* 移动端抽屉菜单 */
+.nav-drawer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: none;
+  flex-direction: column;
+  background: rgba(13, 18, 32, 0.98);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px 16px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+.nav-drawer-link {
+  padding: 12px 8px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.nav-drawer-link[data-active='1'] {
+  color: var(--gold);
+  background: var(--gold-dim);
+  font-weight: 600;
+}
+
+/* ============================================================
+   响应式：平板 / 手机
+   ============================================================ */
+
+/* 平板及以下：隐藏横向导航，显示汉堡，抽屉展开 */
+@media (max-width: 820px) {
+  .nav-links { display: none; }
+  .nav-toggle { display: flex; }
+  .nav-drawer { display: flex; }
+
+  .nav-inner { padding: 0 16px; }
+  .nav-title { font-size: 17px; }
+  .nav-badge { display: none; }
+
+  /* 全局页面容器收紧 */
+  .page-container { padding: 24px 16px; }
+  .card { padding: 16px; }
+  .page-title { font-size: 22px; }
+  .page-subtitle { font-size: 14px; margin-bottom: 20px; }
+
+  /* 首页 Hero：大标题与副标题缩小 */
+  .home-hero { padding: 48px 20px 32px !important; }
+  .hero-title { font-size: 40px !important; }
+  .hero-subtitle { font-size: 18px !important; }
+
+  /* 主案例卡：两列改单列，去掉中间竖线 */
+  .case-grid { grid-template-columns: 1fr !important; }
+  .case-grid > div:first-child { border-right: none !important; border-bottom: 1px solid rgba(212,168,83,.2) !important; }
+
+  /* 三步骤：三列改单列 */
+  .steps-grid { grid-template-columns: 1fr !important; padding: 16px 20px 48px !important; }
+
+  /* 导演台：左侧固定侧栏改为顶部横向导航 */
+  .director-layout { flex-direction: column !important; gap: 16px !important; padding: 16px 16px 64px !important; }
+  .director-sidebar {
+    width: 100% !important;
+    position: static !important;
+    max-height: none !important;
+    flexShrink: 0 !important;
+  }
+  .director-side-nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+  .director-side-nav > button {
+    flex-shrink: 0 !important;
+    width: auto !important;
+    border-radius: 999px !important;
+    border-left: none !important;
+    white-space: nowrap;
+  }
+
+  /* 我的项目卡片：摘要最多 3 行，超出省略 */
+.project-card-tagline {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* 非遗详情页：大标题缩小，两列改单列 */
+  .heritage-title { font-size: 28px !important; }
+  .heritage-grid { grid-template-columns: 1fr !important; }
+
+  /* 创作页大标题缩小 */
+  .create-title { font-size: 26px !important; line-height: 1.25 !important; }
+}
+
+/* 手机：进一步压缩 */
+@media (max-width: 480px) {
+  :root {
+    --nav-height: 56px;
+  }
+
+  .page-container { padding: 20px 12px; }
+  .card { padding: 14px; border-radius: var(--radius-md); }
+  .btn { padding: 10px 18px; font-size: 14px; }
+  .page-title { font-size: 20px; }
+
+  /* 首页 Hero 进一步缩小，避免撑屏 */
+  .home-hero { padding: 36px 16px 24px !important; }
+  .hero-title { font-size: 32px !important; }
+
+  /* 防止长内容横向溢出 */
+  body, .page, .page-container {
+    overflow-x: hidden;
+  }
+}
+
 /* prefers-reduced-motion：关闭或减少动画 */
 @media (prefers-reduced-motion: reduce) {
   .hero-particle {

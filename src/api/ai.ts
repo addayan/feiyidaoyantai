@@ -61,7 +61,7 @@ export interface OptimizePromptRequest {
 /**
  * 将非 AI 错误统一转换为 AIError
  */
-function toAIError(error: unknown): AIError {
+async function toAIError(error: unknown): Promise<AIError> {
   // AbortError（超时或外部取消）
   if (error instanceof DOMException && error.name === 'AbortError') {
     return { code: 'AI_TIMEOUT', message: '请求超时或被取消', retryable: true };
@@ -70,11 +70,13 @@ function toAIError(error: unknown): AIError {
     return { code: 'AI_TIMEOUT', message: '请求超时或被取消', retryable: true };
   }
 
-  // 服务端返回的错误
+  // 服务端返回的错误（尽量带出服务端错误详情）
   if (error instanceof Response) {
+    let detail: any = null;
+    try { detail = await error.json(); } catch { /* 无响应体 */ }
     return {
-      code: `AI_SERVER_${error.status}`,
-      message: `服务端错误: ${error.status} ${error.statusText}`,
+      code: detail?.error?.code || `AI_SERVER_${error.status}`,
+      message: detail?.error?.message || `服务端错误: ${error.status} ${error.statusText}`,
       retryable: error.status >= 500,
     };
   }
@@ -130,7 +132,7 @@ export async function checkAIHealth(signal?: AbortSignal | null): Promise<Health
 
     return await response.json();
   } catch (error) {
-    throw toAIError(error);
+    throw await toAIError(error);
   } finally {
     clearTimeout(timer);
   }
@@ -160,7 +162,7 @@ export async function generateStoryboard(
 
     return await response.json();
   } catch (error) {
-    throw toAIError(error);
+    throw await toAIError(error);
   } finally {
     clearTimeout(timer);
   }
@@ -190,7 +192,7 @@ export async function regenerateSection(
 
     return await response.json();
   } catch (error) {
-    throw toAIError(error);
+    throw await toAIError(error);
   } finally {
     clearTimeout(timer);
   }
@@ -220,7 +222,7 @@ export async function regenerateShot(
 
     return await response.json();
   } catch (error) {
-    throw toAIError(error);
+    throw await toAIError(error);
   } finally {
     clearTimeout(timer);
   }
@@ -250,7 +252,7 @@ export async function optimizeShot(
 
     return await response.json();
   } catch (error) {
-    throw toAIError(error);
+    throw await toAIError(error);
   } finally {
     clearTimeout(timer);
   }
@@ -280,7 +282,7 @@ export async function optimizePrompt(
 
     return await response.text();
   } catch (error) {
-    throw toAIError(error);
+    throw await toAIError(error);
   } finally {
     clearTimeout(timer);
   }

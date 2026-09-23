@@ -41,7 +41,7 @@ export async function callArkAPI(prompt: string): Promise<string> {
   }
 
   const data = await response.json();
-  const content = data?.choices?.[0]?.message?.content;
+  const content = (data as any)?.choices?.[0]?.message?.content;
   if (!content || typeof content !== 'string') {
     throw Object.assign(new Error('AI 响应格式异常：无有效内容'), { code: 'AI_INVALID_RESPONSE' as const, retryable: true });
   }

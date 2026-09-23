@@ -65,7 +65,7 @@ export default function TopActionBar({
           <span className="tag">{duration}</span>
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <button className="btn btn-sm btn-ghost" onClick={onCreateClick}>继续创作</button>
         <button className="btn btn-sm btn-secondary" onClick={onExportMarkdown}>导出 Markdown</button>
         <button className="btn btn-sm btn-secondary" onClick={onExportProject} title="导出完整项目数据（含分镜、角色、场景）为 JSON 文件，可备份或分享">导出项目</button>

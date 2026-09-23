@@ -13,6 +13,7 @@ interface SidebarNavProps {
 export default function SidebarNav({ isExample, title, tagline, activeSection, onNavigate }: SidebarNavProps) {
   return (
     <aside
+      className="director-sidebar"
       style={{
         position: 'sticky',
         top: 'calc(var(--nav-height) + 24px)',
@@ -41,7 +42,7 @@ export default function SidebarNav({ isExample, title, tagline, activeSection, o
         </p>
       </div>
 
-      <nav>
+      <nav className="director-side-nav">
         {DIRECTOR_SECTIONS.map((s) => (
           <button
             key={s.key}

@@ -1,88 +1,90 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 const NAV_ITEMS = [
   { path: '/', label: '首页' },
   { path: '/heritage', label: '了解非遗' },
   { path: '/create', label: '开始创作' },
-  { path: '/cases', label: '案例库' },
   { path: '/my-projects', label: '我的项目' },
   { path: '/tech-roadmap', label: '技术路线' },
 ];
 
 export default function Navbar() {
   const location = useLocation();
+  const [open, setOpen] = useState(false);
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
   };
 
+  // 路由切换后自动收起移动端菜单
+  const closeOnNavigate = () => setOpen(false);
+
   return (
-    <nav style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: 'var(--nav-height)',
-      background: 'rgba(10, 14, 26, 0.85)',
-      backdropFilter: 'blur(16px)',
-      borderBottom: '1px solid var(--border)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: 'var(--container-max)',
-        padding: '0 24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{
-            fontSize: 20,
-            fontWeight: 800,
-            background: 'linear-gradient(135deg, #ffffff 20%, var(--gold) 80%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            filter: 'drop-shadow(0 1px 8px rgba(212,168,83,0.12))',
-          }}>
-            非遗影像工坊
-          </span>
-          <span style={{
-            fontSize: 11,
-            color: 'var(--gold)',
-            border: '1px solid rgba(212,168,83,.3)',
-            borderRadius: 4,
-            padding: '1px 6px',
-          }}>
-            V3.0 BETA
-          </span>
+    <nav
+      className="app-nav"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 'var(--nav-height)',
+        background: 'rgba(10, 14, 26, 0.85)',
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid var(--border)',
+        zIndex: 1000,
+      }}
+    >
+      <div className="nav-inner">
+        <Link to="/" className="nav-brand" onClick={closeOnNavigate}>
+          <span className="nav-title">辽韵 AI 导演台</span>
+          <span className="nav-badge">辽宁非遗</span>
         </Link>
 
-        <div style={{ display: 'flex', gap: 4 }}>
+        {/* 桌面端：水平导航 */}
+        <div className="nav-links" role="menubar">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              style={{
-                padding: '8px 13px',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: 13,
-                fontWeight: isActive(item.path) ? 600 : 400,
-                color: isActive(item.path) ? 'var(--gold)' : 'var(--text-secondary)',
-                background: isActive(item.path) ? 'var(--gold-dim)' : 'transparent',
-                transition: 'all 0.2s',
-              }}
+              role="menuitem"
+              className="nav-link"
+              data-active={isActive(item.path) ? '1' : '0'}
             >
               {item.label}
             </Link>
           ))}
         </div>
+
+        {/* 移动端：汉堡按钮（仅小屏显示） */}
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-label={open ? '关闭菜单' : '打开菜单'}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className={`nav-toggle-bar ${open ? 'is-open' : ''}`} />
+        </button>
       </div>
+
+      {/* 移动端：展开的下拉菜单 */}
+      {open && (
+        <div className="nav-drawer">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className="nav-drawer-link"
+              data-active={isActive(item.path) ? '1' : '0'}
+              onClick={closeOnNavigate}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </nav>
   );
 }

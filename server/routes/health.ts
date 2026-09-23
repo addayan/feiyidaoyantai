@@ -9,7 +9,7 @@ const router = Router();
 router.get('/api/health', (_req: Request, res: Response) => {
   const body: HealthResponse = {
     ok: true,
-    service: '非遗影像工坊 AI 后端',
+    service: '辽韵 AI 导演台 AI 后端',
     modelConfigured: isModelConfigured,
     modelId: getSafeModelId(),
   };

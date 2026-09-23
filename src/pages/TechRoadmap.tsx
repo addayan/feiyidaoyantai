@@ -1,6 +1,6 @@
 const PIPELINE_STEPS = [
   { label: '用户创意', desc: '输入非遗主题和创作参数', done: true, color: 'var(--text-primary)' },
-  { label: '豆包大模型创意策划', desc: 'AI 理解主题、构思故事', done: true, color: 'var(--gold)' },
+  { label: '大模型 API创意策划', desc: 'AI 理解主题、构思故事', done: true, color: 'var(--gold)' },
   { label: '故事 / 角色 / 场景', desc: '生成完整创意框架', done: true, color: 'var(--gold)' },
   { label: 'AI 分镜导演台', desc: '8 镜头分镜 + 提示词 + 可生成性评分', done: true, color: 'var(--gold)' },
   { label: 'Seedream 图像生成', desc: '基于首帧/尾帧提示词生成图片', done: false, color: 'var(--teal)' },
@@ -84,7 +84,7 @@ export default function TechRoadmap() {
             {[
               ['已实现', '完整 UI 骨架、路由系统、首页、案例库、AI 导演台界面'],
               ['已实现', '项目 localStorage 存储、案例数据结构、类型系统'],
-              ['已预留', '豆包大模型 / 火山方舟 API 接口（.env + 后端代理）'],
+              ['已预留', '大模型 API / 火山方舟 API 接口（.env + 后端代理）'],
               ['已预留', 'Seedream 图像生成、Seedance 视频生成接口'],
               ['待实现', '真实 AI 文本生成、局部重新生成、AI 优化'],
               ['待实现', 'Markdown 导出、AI 视频可生成性深度分析'],
@@ -107,7 +107,7 @@ export default function TechRoadmap() {
         <div className="card" style={{ marginTop: 20 }}>
           <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--gold)', marginBottom: 16 }}>技术栈</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {['React 18', 'TypeScript', 'Vite', 'React Router', 'Node.js', 'Express', '豆包大模型', 'Seedream', 'Seedance'].map(t => (
+            {['React 18', 'TypeScript', 'Vite', 'React Router', 'Node.js', 'Express', '大模型 API', 'Seedream', 'Seedance'].map(t => (
               <span key={t} className="tag tag-teal">{t}</span>
             ))}
           </div>

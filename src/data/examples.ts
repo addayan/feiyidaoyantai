@@ -1,7 +1,9 @@
+import { liaoningData, liaoningSummary, LIAONING_SLUG } from './liaoningCase';
 import type { CaseSummary, Project, ProjectData } from '../types';
 
 // ===== 4 个内置案例摘要 =====
 export const CASE_SUMMARIES: CaseSummary[] = [
+  liaoningSummary,
   {
     id: 'nuo-opera-choumian',
     slug: 'nuo-opera-choumian',
@@ -1212,6 +1214,7 @@ const woodblockDoorGodsData: ProjectData = {
 
 // ===== 案例数据映射 =====
 const EXAMPLE_DATA_MAP: Record<string, ProjectData> = {
+  [LIAONING_SLUG]: liaoningData,
   'nuo-opera-choumian': nuoOperaData,
   'tongliang-dragon-fire-night': tongliangDragonData,
   'shu-embroidery-one-stitch': shuEmbroideryData,

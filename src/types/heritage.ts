@@ -46,6 +46,9 @@ export interface HeritageEntry {
   typicalActions: string[];
 
   /** 事实层：后续接官方数据库后填充 */
+  officialName?: string;
+  designation?: string;
+  announcedAt?: string;
   projectCode?: string;
   region?: string;
   protectionUnit?: string;

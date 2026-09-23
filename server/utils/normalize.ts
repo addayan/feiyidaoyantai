@@ -192,8 +192,8 @@ export function normalizeGeneratedResult(raw: any, request: GenerateRequest): an
 
   // --- 发布文案 ---
   const socialPosts = {
-    douyin: raw.socialPosts?.douyin || `用 AI 做了一个关于${request.heritageType}的短片！#非遗影像工坊 #${request.heritageType} #AI短片 #传统文化`,
-    xiaohongshu: raw.socialPosts?.xiaohongshu || `用 AI 做了一部${request.heritageType}短片\n\n从创意到分镜到提示词，AI 帮我完成了全部前期策划。\n\n#非遗影像工坊 #${request.heritageType} #AI创作 #非遗文化 #短片创作`,
+    douyin: raw.socialPosts?.douyin || `用 AI 做了一个关于${request.heritageType}的短片！#辽韵AI导演台 #${request.heritageType} #AI短片 #传统文化`,
+    xiaohongshu: raw.socialPosts?.xiaohongshu || `用 AI 做了一部${request.heritageType}短片\n\n从创意到分镜到提示词，AI 帮我完成了全部前期策划。\n\n#辽韵AI导演台 #${request.heritageType} #AI创作 #非遗文化 #短片创作`,
   };
   if (!raw.socialPosts) warnings.push('socialPosts 为空，已生成兜底内容');
 

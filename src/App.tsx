@@ -15,6 +15,7 @@ const HeritageDetail = lazy(() => import('./pages/HeritageDetail'));
 const Cases = lazy(() => import('./pages/Cases'));
 const MyProjects = lazy(() => import('./pages/MyProjects'));
 const TechRoadmap = lazy(() => import('./pages/TechRoadmap'));
+const AdminConfig = lazy(() => import('./pages/AdminConfig'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // 路由切换时的轻量加载占位
@@ -87,6 +88,7 @@ export default function App() {
               <Route path="/cases" element={<Cases />} />
               <Route path="/my-projects" element={<MyProjects />} />
               <Route path="/tech-roadmap" element={<TechRoadmap />} />
+              <Route path="/admin" element={<AdminConfig />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

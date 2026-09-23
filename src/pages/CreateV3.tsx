@@ -142,7 +142,8 @@ export default function CreateV3() {
     navigate(`/director/${projectId}`);
   };
 
-  const runGeneration = async () => {
+  const runGeneration = async (modeOverride?: 'ai' | 'quick') => {
+    const genMode = modeOverride ?? mode;
     const finalHeritage = heritageName.trim();
     if (!finalHeritage || generationLock.current) return;
 
@@ -162,7 +163,7 @@ export default function CreateV3() {
     );
 
     try {
-      if (mode === 'ai') {
+      if (genMode === 'ai') {
         if (!modelConfigured) {
           throw new Error('AI 模型尚未配置，请先使用快速体验或配置模型。');
         }
@@ -188,11 +189,17 @@ export default function CreateV3() {
       });
 
       finalizeProject(data, 'quick');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+    } catch (err: any) {
+      const msg = err?.message || '生成失败，请稍后再试';
+      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
       generationLock.current = false;
       setGenerating(false);
     }
+  };
+
+  const handleModeSelect = (m: 'ai' | 'quick') => {
+    setMode(m);
+    runGeneration(m);
   };
 
   return (
@@ -200,17 +207,26 @@ export default function CreateV3() {
       <div style={{ maxWidth: 980, margin: '0 auto', padding: '48px 24px 90px' }}>
         <header style={{ textAlign: 'center', marginBottom: 30 }}>
           <div style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 800, letterSpacing: '.12em' }}>
-            AI 创作导演台 V3.0
+            辽宁非遗 AI 创作导演台
           </div>
-          <h1 style={{ fontSize: 36, margin: '8px 0 0' }}>先选非遗，再组合你的故事</h1>
+          <h1 className="create-title" style={{ fontSize: 36, margin: '8px 0 0' }}>先选非遗，再组合你的故事</h1>
           <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8, maxWidth: 720, margin: '12px auto 0' }}>
             不需要先懂导演风格。选一个非遗或直接输入名称，再用几个简单选项确定故事方向。
             AI 会读取对应的非遗创作资料，生成故事、分镜、首帧图提示词和视频提示词。
           </p>
         </header>
+        <section className="card" style={{ borderColor: 'var(--gold)', padding: 22, marginBottom: 20, background: 'linear-gradient(120deg, #301c25, #111e31)' }}>
+          <div style={{ color: 'var(--gold)', fontSize: 12, marginBottom: 8 }}>本次推荐 ·《一剪见闾山》</div>
+          <h2 style={{ fontSize: 23 }}>剪纸（医巫闾山满族剪纸）</h2>
+          <p style={{ color: 'var(--text-secondary)', margin: '8px 0 16px' }}>辽宁省锦州市 · 传统美术 · 国家级非物质文化遗产代表性项目</p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <button className="btn btn-primary" onClick={() => selectHeritage('医巫闾山满族剪纸', 'yiwulvshan-manchu-paper-cutting')}>选择这个非遗项目</button>
+            <Link className="btn btn-secondary" to="/director/yiwulvshan-paper-cutting?mode=example">打开完整演示案例</Link>
+          </div>
+        </section>
 
         <section className="card" style={{ padding: 24, marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
             <div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>01 · 选择非遗</div>
               <h2 style={{ fontSize: 18, margin: '4px 0 0' }}>你想做什么非遗？</h2>
@@ -383,8 +399,8 @@ export default function CreateV3() {
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 type="button"
-                disabled={!modelConfigured}
-                onClick={() => setMode('ai')}
+                disabled={!modelConfigured || generating}
+                onClick={() => handleModeSelect('ai')}
                 className={mode === 'ai' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}
                 style={!modelConfigured ? { opacity: .45, cursor: 'not-allowed' } : undefined}
               >
@@ -392,7 +408,8 @@ export default function CreateV3() {
               </button>
               <button
                 type="button"
-                onClick={() => setMode('quick')}
+                onClick={() => handleModeSelect('quick')}
+                disabled={generating}
                 className={mode === 'quick' ? 'btn btn-sm btn-teal' : 'btn btn-sm btn-secondary'}
               >
                 快速体验
@@ -407,7 +424,7 @@ export default function CreateV3() {
 
           <button
             type="button"
-            onClick={runGeneration}
+            onClick={() => runGeneration()}
             disabled={!heritageName.trim() || generating}
             className="btn btn-primary"
             style={{ minWidth: 190, opacity: !heritageName.trim() || generating ? .5 : 1 }}

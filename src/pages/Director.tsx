@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { type DirectorSection, type Project } from '../types';
 import type { GenerationRecord } from '../types';
 import { getProject, updateProject, createProject, addGenerationRecord as storeAddGenerationRecord } from '../store/projectStore';
+import { CULTURE_SOURCE, LIAONING_SLUG } from '../data/liaoningCase';
 import { getExampleProject } from '../data/examples';
 import { DIRECTOR_STYLE_PRESETS } from '../data/directorStyles';
 import type { DirectorStylePreset } from '../types';
@@ -450,14 +451,14 @@ export default function Director() {
 
     md.push('---');
     md.push('');
-    md.push('*由 非遗影像工坊 2.0 生成*');
+    md.push('*由 辽韵 AI 导演台 生成*');
     md.push('');
 
     const blob = new Blob([md.join('\n')], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${d.title.replace(/[\\/:*?"<>|]/g, '')}-非遗影像工坊.md`;
+    a.download = `${d.title.replace(/[\\/:*?"<>|]/g, '')}-辽韵AI导演台.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -477,17 +478,17 @@ export default function Director() {
     const exportData = {
       ...project,
       _exportMeta: {
-        app: '非遗影像工坊',
+        app: '辽韵 AI 导演台',
         version: 'V2.2.0',
         exportedAt: new Date().toISOString(),
-        exportedBy: '阿岩',
+        exportedBy: '创作者',
       },
     };
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${(project.data.title || '未命名项目').replace(/[\\/:*?"<>|]/g, '')}-非遗影像工坊.json`;
+    a.download = `${(project.data.title || '未命名项目').replace(/[\\/:*?"<>|]/g, '')}-辽韵AI导演台.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -665,15 +666,17 @@ export default function Director() {
         shotIndex,
       });
 
+      const newShot = result?.shot ?? result;
+
       setData((prev) => {
         if (!prev) return prev;
         const next = JSON.parse(JSON.stringify(prev));
-        next.shots[shotIndex] = result;
+        next.shots[shotIndex] = newShot;
         return next;
       });
 
       if (!project.isExample) {
-        const newShots = data.shots.map((s, idx) => idx === shotIndex ? result : s);
+        const newShots = data.shots.map((s, idx) => idx === shotIndex ? newShot : s);
         updateProject(project.id, { shots: newShots });
       }
 
@@ -710,15 +713,17 @@ export default function Director() {
         optimizeType: '综合优化',
       });
 
+      const newShot = result?.shot ?? result;
+
       setData((prev) => {
         if (!prev) return prev;
         const next = JSON.parse(JSON.stringify(prev));
-        next.shots[shotIndex] = result;
+        next.shots[shotIndex] = newShot;
         return next;
       });
 
       if (!project.isExample) {
-        const newShots = data.shots.map((s, idx) => idx === shotIndex ? result : s);
+        const newShots = data.shots.map((s, idx) => idx === shotIndex ? newShot : s);
         updateProject(project.id, { shots: newShots });
       }
 
@@ -813,6 +818,7 @@ export default function Director() {
     <div className="page">
       <div
         ref={mainRef}
+        className="director-layout"
         style={{
           display: 'flex',
           maxWidth: 'var(--container-max)',
@@ -845,6 +851,11 @@ export default function Director() {
             fileInputRef={fileInputRef}
           />
 
+          {project.slug === LIAONING_SLUG && <div className="card" style={{ marginBottom: 24, borderLeft: '3px solid var(--gold)', fontSize: 13, lineHeight: 1.8 }}>
+            <strong style={{ color: 'var(--gold)' }}>剪纸（医巫闾山满族剪纸） · 辽宁省锦州市</strong><br />
+            本地完整演示 · 原创前期创作方案 · 未生成成片<br />
+            <a href={CULTURE_SOURCE} target="_blank" rel="noreferrer" style={{ color: 'var(--text-secondary)' }}>文化事实：Ⅶ-16 / 传统美术 / 2006年第一批 · 查看官方资料 ↗</a>
+          </div>}
           <section id="section-story" className="director-section" style={{ marginBottom: 48 }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>
               <span style={{ color: 'var(--gold)', marginRight: 8 }}>01</span>创意与故事
@@ -1120,6 +1131,17 @@ export default function Director() {
               </div>
           )}
 
+            {project.slug === LIAONING_SLUG && <div id="liaoning-shot-overview" className="card" style={{ marginBottom: 24, padding: 24 }}>
+              <div style={{ color: 'var(--gold)', marginBottom: 16, fontSize: 17, fontWeight: 700 }}>《一剪见闾山》 · 8 镜头 / 60 秒</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                {data.shots.map((shot, index) => <div key={shot.id} style={{ background: 'linear-gradient(115deg,#2b1b28,#111e30)', border: '1px solid var(--border)', padding: 16, borderRadius: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><strong><span style={{ color: 'var(--gold)', marginRight: 10 }}>{String(index + 1).padStart(2, '0')}</span>{shot.scene}</strong><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{shot.duration}</span></div>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{shot.description}</p>
+                  <div style={{ fontSize: 11, color: 'var(--gold)', marginTop: 10 }}>{shot.shotSize} · {shot.camera} · {shot.composition}</div>
+                </div>)}
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>以下可逐镜头编辑并查看首帧、尾帧与视频提示词。可生成性评分为制作前预估。</p>
+            </div>}
             {/* 批量编辑面板（V2.1.0 导演台体验优化） */}
             {batchEditField && (
               <div className="card" style={{ padding: 16, marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1701,9 +1723,10 @@ export default function Director() {
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>
               <span style={{ color: 'var(--gold)', marginRight: 8 }}>06</span>文化表达检查
             </h2>
+            {project.slug === LIAONING_SLUG && <p style={{ color: 'var(--gold)', marginBottom: 18, fontSize: 20 }}>AI 可以参与创意，但无法替代文化事实核验。</p>}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="card" style={{ textAlign: 'center', padding: '28px' }}>
-                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>文化表达评分</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>{project.slug === LIAONING_SLUG ? '文化表达自查 · 人工预设，非权威认证' : '文化表达评分'}</div>
                 <div
                   style={{
                     fontSize: 48,
@@ -1730,7 +1753,7 @@ export default function Director() {
                       borderBottom: i < (data.cultureCheck?.items || []).length - 1 ? '1px solid var(--border)' : 'none',
                     }}
                   >
-                    <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{item.label}</span>
+                    <div style={{ flex: 1, paddingRight: 16 }}><span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{item.label}</span>{project.slug === LIAONING_SLUG && <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{item.detail}</p>}</div>
                     <span
                       style={{
                         fontSize: 13,

@@ -1,15 +1,17 @@
 import { buildOptimizePromptFieldPrompt } from '../../server/prompts/optimize-prompt';
-import { callArkAPI, isModelConfigured, createErrorResponse } from '../_lib/ark';
+import { callArkChatAPI, createErrorResponse } from '../_lib/ark';
+import { getModelConfig, isModelConfigured } from '../_lib/config';
 
 export const onRequestPost: PagesFunction = async (context) => {
-  const env = context.env as unknown as Record<string, string>;
   
-  if (!isModelConfigured(env)) {
+  const config = await getModelConfig(context);
+  const chat = config.chat;
+  if (!isModelConfigured(config) || !chat) {
     return createErrorResponse('AI_NOT_CONFIGURED', 'AI 模型未配置', false, 503);
   }
 
   try {
-    const body = await context.request.json();
+    const body: any = await context.request.json();
     const { project, shotIndex, promptField, optimizeType, customInstruction } = body;
     if (project === undefined || project === null || shotIndex === undefined || shotIndex < 0 || !promptField || !optimizeType) {
       return createErrorResponse('AI_REQUEST_FAILED', '缺少必要参数：project, shotIndex, promptField, optimizeType', false, 400);
@@ -17,7 +19,7 @@ export const onRequestPost: PagesFunction = async (context) => {
 
     const prompt = buildOptimizePromptFieldPrompt(project, shotIndex, promptField, optimizeType, customInstruction);
 
-    const rawText = await callArkAPI(prompt, env);
+    const rawText = await callArkChatAPI(prompt, chat);
     let optimizedPrompt = rawText.trim();
     if (optimizedPrompt.startsWith('"') && optimizedPrompt.endsWith('"')) {
       optimizedPrompt = optimizedPrompt.slice(1, -1);

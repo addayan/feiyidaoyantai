@@ -11,6 +11,25 @@ import type { HeritageEntry } from '../types/heritage';
  */
 export const HERITAGE_CATALOG: HeritageEntry[] = [
   {
+    slug: 'yiwulvshan-manchu-paper-cutting', name: '医巫闾山满族剪纸',
+    officialName: '剪纸（医巫闾山满族剪纸）', officialCategory: '传统美术',
+    region: '辽宁省锦州市', level: 'national', designation: '国家级非物质文化遗产代表性项目',
+    projectCode: 'Ⅶ-16', announcedAt: '2006年（第一批）',
+    sourceUrl: 'https://www.ihchina.cn/project_details/13927.html',
+    sourceLabel: '中国非物质文化遗产网·中国非物质文化遗产数字博物馆', lastVerifiedAt: '2026-09-23',
+    summary: '医巫闾山满族剪纸流传于辽西医巫闾山地区，具有鲜明的东北满族人文特征和民间艺术特色，造型简洁、纹样古朴，保存了丰富的满族风俗及地方民俗文化信息。创作延展：以纸张、光影与空间转化探索数字影像表达。',
+    keywords: ['辽宁', '锦州', '医巫闾山', '满族', '剪纸'], typicalMaterials: ['红纸', '剪刀'], typicalActions: ['剪', '展开', '观看', '记录'],
+    ai: {
+      visualStrength: 96, motionStrength: 84, storyStrength: 92, generationStability: 91, culturalRisk: 32,
+      visualMechanisms: ['剪纸纹样由二维逐渐进入真实空间', '红纸展开形成医巫闾山意象', '剪纸人物由静态逐渐产生轻微动作', '纸张纹样与现实人物进行匹配转场', '镂空区域成为进入另一空间的窗口'],
+      suitableStories: ['年轻人第一次认识家乡非遗', '一张剪纸连接传统与当代生活', '从观看者逐渐成为记录者', '传统图形进入数字影像世界'],
+      suitableStyles: ['写实电影', '剪纸与现实融合', '东方诗意', '纪录片混合视觉'],
+      goodShots: ['剪刀与红纸微距', '镂空纹样透光', '剪纸在窗前轻微摆动', '二维剪纸与真实山林匹配转场', '人物与剪纸影子叠化'],
+      hardShots: ['长时间精确剪纸手部动作', '非常复杂的连续纹样生成', '大量精细镂空结构连续变形'],
+      cautions: ['不随意混用其他地区剪纸代表性纹样', '不凭空解释具体纹样的宗教或民俗含义', '不把满族文化简单猎奇化、神秘化', '无法确认的文化事实必须使用保守表达'],
+    },
+  },
+  {
     slug: 'paper-cutting',
     name: '剪纸',
     officialCategory: '传统美术',

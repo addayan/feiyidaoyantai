@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ============================================
-echo   非遗影像工坊 V2.2.0 部署脚本 BY 阿岩
+echo   辽韵 AI 导演台 部署脚本
 echo ============================================
 echo.
 
@@ -25,7 +25,7 @@ set CLOUDFLARE_API_TOKEN=%~1
 set CLOUDFLARE_ACCOUNT_ID=d47a86113683cf607f4ad2044c8b5027
 
 echo [1/3] 构建项目...
-cd /d "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\work-mode-projects\6a572d3fdf87250939ae844b\feiyidaoyantai-main"
+cd /d "%~dp0"
 call npm run build
 if %errorlevel% neq 0 (
     echo [错误] 构建失败
@@ -52,6 +52,6 @@ echo   - https://feiyi-4zu.pages.dev
 echo   - https://feiyi.hao1234.top
 echo.
 echo ============================================
-echo   V2.2.0 部署完成 BY 阿岩
+echo   部署完成
 echo ============================================
 pause
