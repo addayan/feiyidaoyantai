@@ -257,7 +257,7 @@ export default function GenerationOverlay({
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 11, flexShrink: 0,
                       background: isDone ? 'var(--success)' : 'transparent',
-                      color: isDone ? '#0a0e1a' : isCurrent ? 'var(--gold)' : 'var(--text-muted)',
+                      color: isDone ? '#12100e' : isCurrent ? 'var(--gold)' : 'var(--text-muted)',
                       border: isCurrent ? '1.5px solid var(--gold)' : isPending ? '1.5px solid var(--border)' : 'none',
                       fontWeight: 600,
                     }}>

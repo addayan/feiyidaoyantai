@@ -126,7 +126,7 @@ export default function MyProjects() {
           {toast && (
             <div style={{
               position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-              background: 'rgba(10,14,26,0.95)', border: '1px solid var(--border-gold)',
+              background: 'rgba(18,16,14,0.95)', border: '1px solid var(--border-gold)',
               color: 'var(--gold)', padding: '10px 20px', borderRadius: 'var(--radius-sm)',
               fontSize: 14, zIndex: 2000, boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
             }}>
@@ -276,7 +276,7 @@ export default function MyProjects() {
         {toast && (
           <div style={{
             position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-            background: 'rgba(10,14,26,0.95)', border: '1px solid var(--border-gold)',
+            background: 'rgba(18,16,14,0.95)', border: '1px solid var(--border-gold)',
             color: 'var(--gold)', padding: '10px 20px', borderRadius: 'var(--radius-sm)',
             fontSize: 14, zIndex: 2000, boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
           }}>

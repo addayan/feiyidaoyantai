@@ -31,7 +31,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#0a0e1a',
+          background: '#12100e',
           color: '#f1f5f9',
           fontFamily: 'system-ui, sans-serif',
         }}>
@@ -60,7 +60,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               onClick={() => window.location.href = '/'}
               style={{
                 marginTop: 24, padding: '10px 24px', fontSize: 14, fontWeight: 600,
-                background: '#d4a853', color: '#0a0e1a', border: 'none',
+                background: '#d4a853', color: '#12100e', border: 'none',
                 borderRadius: 10, cursor: 'pointer',
               }}
             >

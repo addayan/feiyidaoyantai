@@ -8,7 +8,7 @@ import { useAIHealth } from '../hooks/useAIHealth';
 import { generateStoryboard, type AIError } from '../api/ai';
 import GenerationOverlay, { type CompletionStat } from '../components/GenerationOverlay';
 
-const HERITAGE_OPTIONS: HeritageType[] = ['傩戏', '铜梁龙', '蜀绣', '木版年画', '剪纸', '皮影', '陶艺', '其他'];
+const HERITAGE_OPTIONS: HeritageType[] = ['医巫闾山满族剪纸', '海城高跷秧歌', '岫岩满族刺绣', '锦州皮影戏', '辽阳鼓乐', '其他'];
 const PURPOSE_OPTIONS: Purpose[] = ['AIGC 比赛', '短视频', '课程作业', '文旅宣传', '动态海报', '其他'];
 const DURATION_OPTIONS: Duration[] = ['30秒', '约1分钟', '3分钟', '5分钟'];
 const STYLE_OPTIONS: VisualStyle[] = ['写实电影', '国风动画', '纪录片', '剪纸风', '东方幻想', '其他'];
@@ -117,7 +117,7 @@ export default function Create() {
   const { modelConfigured, loading: healthLoading } = useAIHealth();
 
   // 表单状态
-  const [heritageType, setHeritageType] = useState<HeritageType>('蜀绣');
+  const [heritageType, setHeritageType] = useState<HeritageType>('医巫闾山满族剪纸');
   const [topic, setTopic] = useState('');
   const [purpose, setPurpose] = useState<Purpose>('AIGC 比赛');
   const [duration, setDuration] = useState<Duration>('约1分钟');

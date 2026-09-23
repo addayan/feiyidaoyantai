@@ -1,9 +1,7 @@
 // ===== 辽韵 AI 导演台 类型定义 =====
 
 /** 非遗类型 */
-export type HeritageType =
-  | '傩戏' | '铜梁龙' | '蜀绣' | '木版年画'
-  | '剪纸' | '皮影' | '陶艺' | '其他';
+export type HeritageType = string;
 
 /** 作品用途 */
 export type Purpose =

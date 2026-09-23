@@ -129,7 +129,7 @@ input, select, textarea {
 
 .btn-primary {
   background: linear-gradient(135deg, var(--gold), #c49340);
-  color: #0a0e1a;
+  color: #12100e;
   box-shadow: var(--shadow-gold);
 }
 
