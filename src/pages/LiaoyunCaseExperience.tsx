@@ -9,10 +9,13 @@ function copyText(value: string) {
   return Promise.resolve();
 }
 
+const TABS = ['分镜列表', '故事结构', '角色场景', '视觉风格', '制作参数'];
+
 export default function LiaoyunCaseExperience() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState(0);
   const [toast, setToast] = useState('');
+  const [tab, setTab] = useState(0);
   const shot = useMemo(() => LIAOYUN_SHOTS[selected], [selected]);
   const doCopy = async (value: string) => { await copyText(value); setToast('已复制提示词'); setTimeout(() => setToast(''), 1300); };
 
@@ -47,16 +50,49 @@ export default function LiaoyunCaseExperience() {
       <div className="ly-kicker">05 / 核心界面 · 分镜组织</div>
       <div className="ly-head"><div><h2>把一个故事拆成可执行的<span>分镜结构</span></h2><p>从文化理解、情绪节奏到镜头组织，逐步形成可以继续扩展的导演方案。</p></div><div className="ly-note">案例节选 / 展示部分分镜结构，不代表完整短片镜头总数。</div></div>
       <div className="ly-director">
-        <div className="ly-director-head"><div><div className="ly-director-name">《一剪见闾山》</div><div className="ly-tags"><span>传统美术</span><span>文化传承</span><span>人物成长</span><span>地域记忆</span></div></div><blockquote>“以纸为媒，剪出山河，让被遗忘的文化再次被看见。”</blockquote></div>
-        <div className="ly-tabs"><button className="active">分镜列表</button><button>故事结构</button><button>角色场景</button><button>视觉风格</button><button>制作参数</button></div>
-        <div className="ly-shots">{LIAOYUN_SHOTS.map((s,i)=><button key={s.id} className={`ly-shot ${selected===i?'active':''}`} onClick={()=>setSelected(i)}><img src={s.image}/><div><b><em>{s.id}</em>{s.title}</b><p>{s.description}</p><div className="ly-shot-tags">{s.tags.map(t=><span key={t}>{t}</span>)}</div></div></button>)}<div className="ly-more"><strong>···</strong><b>更多分镜<br/>持续生成中</b><small>基于故事结构与风格设定<br/>可继续扩展镜头序列</small><button onClick={()=>navigate('/create?heritage=yiwulvshan-manchu-paper-cutting')}>＋ 生成后续分镜</button></div></div>
+        <div className="ly-director-head"><div><div className="ly-director-name">《一剪见闾山》</div><div className="ly-tags"><span>传统美术</span><span>文化传承</span><span>人物成长</span><span>地域记忆</span></div></div><blockquote>"以纸为媒，剪出山河，让被遗忘的文化再次被看见。"</blockquote></div>
+        <div className="ly-tabs">{TABS.map((t,i)=><button key={t} className={tab===i?'active':''} onClick={()=>setTab(i)}>{t}</button>)}</div>
+
+        {tab===0 && <div className="ly-shots">{LIAOYUN_SHOTS.map((s,i)=><button key={s.id} className={`ly-shot ${selected===i?'active':''}`} onClick={()=>setSelected(i)}><img src={s.image}/><div><b><em>{s.id}</em>{s.title}</b><p>{s.description}</p><div className="ly-shot-tags">{s.tags.map(t=><span key={t}>{t}</span>)}</div></div></button>)}<div className="ly-more"><strong>···</strong><b>更多分镜<br/>持续生成中</b><small>基于故事结构与风格设定<br/>可继续扩展镜头序列</small><button onClick={()=>navigate('/create?heritage=yiwulvshan-manchu-paper-cutting')}>＋ 生成后续分镜</button></div></div>}
+
+        {tab===1 && <div style={{padding:'24px 8px', color:'var(--text-secondary)', lineHeight:2, fontSize:14}}>
+          <div style={{color:'var(--gold)', marginBottom:12, fontSize:13, letterSpacing:2}}>三幕结构</div>
+          <p style={{marginBottom:16}}><b style={{color:'var(--text-primary)'}}>第一幕 · 看见</b><br/>年轻人回到辽宁锦州，桌上一张红纸静静铺开。他起初只当是普通装饰，直到光从纸后穿过，镂空纹样在墙上投下影子。</p>
+          <p style={{marginBottom:16}}><b style={{color:'var(--text-primary)'}}>第二幕 · 连接</b><br/>他观察手艺人的剪刀与纸屑，举起红纸对向窗光，纸里的山影和窗外的山林叠在一起。他开始用手机记录，在电脑里整理故事与镜头。</p>
+          <p><b style={{color:'var(--text-primary)'}}>第三幕 · 讲述</b><br/>剪纸悬在窗前，镂空中可见远处山林。他站在远处，画面归于平静。他没有重新发明传统，而是选择继续讲述它。</p>
+        </div>}
+
+        {tab===2 && <div style={{padding:'24px 8px', color:'var(--text-secondary)', lineHeight:2, fontSize:14}}>
+          <div style={{color:'var(--gold)', marginBottom:12, fontSize:13, letterSpacing:2}}>角色设定</div>
+          <p style={{marginBottom:8}}><b style={{color:'var(--text-primary)'}}>当代观看者</b>：20岁左右大学生，短发，灰色现代衬衫，好奇、克制，从陌生到理解。</p>
+          <p style={{marginBottom:16}}><b style={{color:'var(--text-primary)'}}>剪纸创作者</b>：仅出现双手，不设定传承人身份，专注、平和。</p>
+          <div style={{color:'var(--gold)', marginBottom:12, fontSize:13, letterSpacing:2}}>场景设定</div>
+          <p style={{marginBottom:8}}><b style={{color:'var(--text-primary)'}}>临窗工作桌</b>：白天，红纸、剪刀、窗光、影。</p>
+          <p><b style={{color:'var(--text-primary)'}}>山林意象</b>：日间，山林轮廓、天空、纸面负空间，不指认具体地标。</p>
+        </div>}
+
+        {tab===3 && <div style={{padding:'24px 8px', color:'var(--text-secondary)', lineHeight:2, fontSize:14}}>
+          <div style={{color:'var(--gold)', marginBottom:12, fontSize:13, letterSpacing:2}}>视觉风格</div>
+          <p style={{marginBottom:8}}><b style={{color:'var(--text-primary)'}}>色调</b>：暖棕黑 + 剪纸红 + 暖金，暗房质感。</p>
+          <p style={{marginBottom:8}}><b style={{color:'var(--text-primary)'}}>构图</b>：框架构图、中心构图、三分法交替，建立节奏。</p>
+          <p style={{marginBottom:8}}><b style={{color:'var(--text-primary)'}}>光线</b>：侧光、逆光、窗光为主，形成纸纤维与影子层次。</p>
+          <p><b style={{color:'var(--text-primary)'}}>质感</b>：写实电影，16:9，24fps，浅景深为主。</p>
+        </div>}
+
+        {tab===4 && <div style={{padding:'24px 8px', color:'var(--text-secondary)', lineHeight:2, fontSize:14}}>
+          <div style={{color:'var(--gold)', marginBottom:12, fontSize:13, letterSpacing:2}}>制作参数</div>
+          <p style={{marginBottom:8}}><b style={{color:'var(--text-primary)'}}>时长</b>：约1分钟，8个镜头。</p>
+          <p style={{marginBottom:8}}><b style={{color:'var(--text-primary)'}}>画幅</b>：16:9，24fps。</p>
+          <p style={{marginBottom:8}}><b style={{color:'var(--text-primary)'}}>声音</b>：极简器乐 + 环境音（剪刀、纸张摩擦、窗外风）。</p>
+          <p><b style={{color:'var(--text-primary)'}}>旁白</b>："起初，我只看见一张红纸。后来，我开始看见它承载的生活。"</p>
+        </div>}
       </div>
       <div className="ly-value"><b>从文案，<span>走向生产结构。</span></b><p>系统输出故事、角色、场景与分镜参数，帮助进入后续图像与视频生产。</p></div>
     </section>
 
     <section className="ly-section" id="prompt">
       <div className="ly-kicker">06 / 核心界面 · 提示词生成</div>
-      <div className="ly-head"><div><h2>从“<span>想法</span>”到 AI 可生成提示词</h2><p>把创意转化为可以直接进入图片和视频生产的结构化描述。</p></div></div>
+      <div className="ly-head"><div><h2>从"<span>想法</span>"到 AI 可生成提示词</h2><p>把创意转化为可以直接进入图片和视频生产的结构化描述。</p></div></div>
       <div className="ly-prompt-layout">
         <aside className="ly-picker">{LIAOYUN_SHOTS.map((s,i)=><button key={s.id} className={selected===i?'active':''} onClick={()=>setSelected(i)}><img src={s.image}/><span><b>{s.id} {s.title}</b><small>{s.shotSize} · {s.duration}</small></span></button>)}</aside>
         <div className="ly-workbench">
