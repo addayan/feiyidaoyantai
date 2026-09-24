@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import type { Duration, Project, Purpose, VisualStyle } from '../types';
 import { generateMockProjectData } from '../data/mockGenerator';
+import { liaoningData } from '../data/liaoningCase';
 import {
   getHeritageBySlug,
   getHeritageSuggestions,
@@ -180,13 +181,10 @@ export default function CreateV3() {
         return;
       }
 
-      const data = generateMockProjectData({
-        heritageType: finalHeritage as any,
-        topic: creativeContext,
-        purpose,
-        duration,
-        style,
-      });
+      // 医巫闾山满族剪纸直接用《一剪见闾山》完整数据
+      const data = finalHeritage === '医巫闾山满族剪纸'
+        ? { ...liaoningData, heritageType: '医巫闾山满族剪纸' }
+        : generateMockProjectData({ heritageType: finalHeritage as any, topic: creativeContext, purpose, duration, style });
 
       finalizeProject(data, 'quick');
     } catch (err: any) {
