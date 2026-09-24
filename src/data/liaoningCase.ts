@@ -111,8 +111,8 @@ export const liaoningData: ProjectData = {
     synopsis: '一名20岁左右的大学生回到辽宁锦州，起初只把眼前的红纸当作传统装饰。通过观察剪纸创作者的双手、纸上的人物轮廓与镂空，并查阅官方文化资料，他逐渐意识到纸张承载着地方生活、记忆与文化表达。窗光让纸面与山林产生视觉连接，他开始用手机记录，以数字工具整理故事与镜头。结尾，他没有重新发明传统，而是选择继续讲述它。人物、相遇与纸面运动均为现代原创设定，不属于历史事实或仪式复原。',
   },
   characters: [
-    { name: '当代观看者 / 记录者', age: '20岁左右', identity: '回到辽宁锦州的大学生，虚构角色', appearance: '短发，清爽自然，不对应真实人物肖像', costume: '灰色现代衬衫、深色长裤', personality: '好奇、克制，从陌生到理解', relationship: '通过观察剪纸创作者与查阅资料认识地方文化', props: '手机、电脑、红纸', anchorPoint: '短发 + 灰色衬衫 + 深色长裤，所有镜头一致' },
-    { name: '剪纸创作者 / 手艺人', age: '不设定', identity: '虚构操作示意，仅出现双手；不设定传承人身份', appearance: '仅拍摄双手局部，不呈现具体人脸', costume: '普通深色袖口', personality: '专注、平和', relationship: '青年观察与记录的对象', props: '剪刀、红纸', anchorPoint: '同一双手与深色袖口；短动作，不生成复杂连续剪刻' },
+    { name: '林舟', age: '20岁左右', identity: '回到辽宁锦州的大学生，虚构角色', appearance: '短发，清爽自然，不对应真实人物肖像', costume: '灰色现代衬衫、深色长裤', personality: '好奇、克制，从陌生到理解', relationship: '通过观察剪纸创作者与查阅资料认识地方文化', props: '手机、电脑、红纸', anchorPoint: '短发 + 灰色衬衫 + 深色长裤，所有镜头一致' },
+    { name: '剪红纸的人', age: '不设定', identity: '虚构操作示意，仅出现双手；不设定传承人身份', appearance: '仅拍摄双手局部，不呈现具体人脸', costume: '普通深色袖口', personality: '专注、平和', relationship: '青年观察与记录的对象', props: '剪刀、红纸', anchorPoint: '同一双手与深色袖口；短动作，不生成复杂连续剪刻' },
   ],
   scenes: [
     { name: '临窗工作桌', time: '白天', location: '辽宁锦州的原创室内空间，不指认真实工坊', atmosphere: '安静、日常、可亲近', coreVisualElements: '红纸、剪刀、镂空、窗、光、影', allowedElements: '木桌、普通现代服装、手机、电脑', avoidElements: '宫殿、古装、龙凤混搭、堆砌灯笼', colorSuggestion: '深蓝黑、剪纸红、暖金', soundElements: '剪刀、纸张摩擦、室内底噪' },
