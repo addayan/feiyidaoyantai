@@ -138,3 +138,22 @@ export const liaoningData: ProjectData = {
   submissionNote: { title: '辽韵 AI 导演台 ·《一剪见闾山》', introduction: '辽宁非遗数字影像创作系统，以医巫闾山满族剪纸展示从文化资料到镜头生产的完整前期工作流。', creativeNote: '不是让 AI 替代传统，而是让新的数字工具帮助年轻人重新看见传统。以红纸、镂空、窗光和山林组织原创故事。', techNote: '复用现有故事、角色、场景、分镜、提示词、文化检查与导出模块；固定案例可直接打开，不等待在线生成。', aiUsageNote: 'AI 辅助组织创意与提示词，事实经官方资料核验；本案例未生成成片，截图均来自运行产品。', culturalValue: '降低年轻人理解与讲述辽宁非遗的前期创作门槛，保留事实与创意之间清晰的边界。', suitableTrack: '2026年第五届辽宁省大学生商业设计创意大赛 · D类 UI/交互设计类', specSuggestion: '8镜头共60秒；16:9、24fps为后续制作建议；提交作品集为A4竖版8页。' },
   socialPosts: { douyin: '从一张红纸开始，我第一次认真看见家乡的文化。《一剪见闾山》——医巫闾山满族剪纸数字影像创作方案。让传统文化被看见、被理解、再被继续讲述。#辽宁非遗 #剪纸 #数字影像', xiaohongshu: '原来一张纸，也能成为重新认识家乡的入口。从观察红纸与光影，到查阅官方资料，再到整理故事和8个镜头。《一剪见闾山》用当代年轻人的视角，尝试讲述辽宁锦州的医巫闾山满族剪纸。人物与情节为原创，文化事实单独核验。' },
 };
+
+// ===== 角色预设备案（AI 不可用时切换）=====
+export const CHARACTER_PRESETS: any[][] = [
+  // 预设A：林舟 + 剪红纸的人（当前默认）
+  [
+    { name: '林舟', age: '20岁左右', identity: '回到辽宁锦州的大学生，虚构角色', appearance: '短发，清爽自然，不对应真实人物肖像', costume: '灰色现代衬衫、深色长裤', personality: '好奇、克制，从陌生到理解', relationship: '通过观察剪纸创作者与查阅资料认识地方文化', props: '手机、电脑、红纸', anchorPoint: '短发 + 灰色衬衫 + 深色长裤，所有镜头一致' },
+    { name: '剪红纸的人', age: '不设定', identity: '虚构操作示意，仅出现双手；不设定传承人身份', appearance: '仅拍摄双手局部，不呈现具体人脸', costume: '普通深色袖口', personality: '专注、平和', relationship: '青年观察与记录的对象', props: '剪刀、红纸', anchorPoint: '同一双手与深色袖口；短动作，不生成复杂连续剪刻' },
+  ],
+  // 预设B：沈归 + 做纸的人
+  [
+    { name: '沈归', age: '22岁左右', identity: '回辽宁做毕设的研究生，虚构角色', appearance: '短发，戴黑框眼镜，不对应真实人物肖像', costume: '黑色卫衣、牛仔裤', personality: '安静、敏锐，从怀疑到投入', relationship: '在图书馆查资料时发现剪纸与家乡的联系', props: '笔记本、相机、红纸', anchorPoint: '黑框眼镜 + 黑色卫衣 + 牛仔裤，所有镜头一致' },
+    { name: '做纸的人', age: '不设定', identity: '虚构操作示意，仅出现双手；不设定传承人身份', appearance: '仅拍摄双手局部，不呈现具体人脸', costume: '深色围裙袖口', personality: '沉稳、细致', relationship: '主角观察与记录的对象', props: '剪刀、红纸、镇纸', anchorPoint: '同一双手与围裙袖口；短动作，不生成复杂连续剪刻' },
+  ],
+  // 预设C：赵晓 + 刻纸的人
+  [
+    { name: '赵晓', age: '19岁左右', identity: '刚上大学的辽宁学生，虚构角色', appearance: '马尾辫，不对应真实人物肖像', costume: '白色T恤、浅色外套', personality: '活泼、好奇，从新鲜到认真', relationship: '寒假回家时偶然发现奶奶的剪纸箱', props: '手机、红纸、笔记本', anchorPoint: '马尾辫 + 白色T恤 + 浅色外套，所有镜头一致' },
+    { name: '刻纸的人', age: '不设定', identity: '虚构操作示意，仅出现双手；不设定传承人身份', appearance: '仅拍摄双手局部，不呈现具体人脸', costume: '浅色布衣袖口', personality: '温和、从容', relationship: '主角观察与记录的对象', props: '刻刀、红纸', anchorPoint: '同一双手与布衣袖口；短动作，不生成复杂连续刻制' },
+  ],
+];

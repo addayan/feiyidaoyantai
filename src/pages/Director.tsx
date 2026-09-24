@@ -10,6 +10,7 @@ import type { DirectorStylePreset } from '../types';
 import { copyText as doCopy } from '../utils/clipboard';
 import { useAIHealth } from '../hooks/useAIHealth';
 import { regenerateSection, regenerateShot, optimizeShot, optimizePrompt } from '../api/ai';
+import { CHARACTER_PRESETS } from '../data/liaoningCase';
 import {
   DndContext,
   closestCenter,
@@ -589,6 +590,19 @@ export default function Director() {
   // 重新生成某个 section（故事/角色/场景/声音设计/参赛说明/发布文案）
   const handleRegenerateSection = useCallback(async (sectionType: string) => {
     if (!data || !project || !modelConfigured || aiLoading !== null) return;
+
+    // AI 不可用时，角色从预设模板里切换
+    if (!modelConfigured && sectionType === "characters") {
+      const presets = CHARACTER_PRESETS;
+      const curName = data.characters?.[0]?.name || "";
+      const curIdx = presets.findIndex(p => p[0].name === curName);
+      const nextIdx = (curIdx + 1) % presets.length;
+      const newChars = JSON.parse(JSON.stringify(presets[nextIdx]));
+      setData(prev => prev ? { ...prev, characters: newChars } : prev);
+      if (!project.isExample) updateProject(project.id, { characters: newChars });
+      showToast("角色预设已切换到 " + (nextIdx + 1) + "/" + presets.length);
+      return;
+    }
 
     // sectionType 到 data 字段的映射
     const sectionFieldMap: Record<string, string> = {
