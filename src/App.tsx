@@ -7,7 +7,6 @@ import { STORAGE_ERROR_EVENT } from './store/projectStore';
 import Home from './pages/Home';
 
 // ===== 路由级代码分割：非首屏页面懒加载 =====
-const Create = lazy(() => import('./pages/Create'));
 const CreateV3 = lazy(() => import('./pages/CreateV3'));
 const Director = lazy(() => import('./pages/Director'));
 const HeritageLibrary = lazy(() => import('./pages/HeritageLibrary'));
@@ -84,7 +83,6 @@ export default function App() {
               <Route path="/heritage" element={<HeritageLibrary />} />
               <Route path="/heritage/:slug" element={<HeritageDetail />} />
               <Route path="/create" element={<CreateV3 />} />
-              <Route path="/create-classic" element={<Create />} />
               <Route path="/director/:projectId" element={<Director />} />
               <Route path="/cases" element={<Cases />} />
               <Route path="/my-projects" element={<MyProjects />} />
